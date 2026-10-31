@@ -13,7 +13,7 @@ import {
   ClipboardList,
   UserCheck,
   Activity,
-  Eye, Edit, Trash2
+  Eye, Edit, Trash2, Filter
 } from 'lucide-react';
 
 const Citas = () => {
@@ -33,6 +33,18 @@ const Citas = () => {
   const [servicios, setServicios] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const getStatusColor = (statusName) => {
+    switch (statusName?.toLowerCase()) {
+      case 'completada': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'confirmada': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'cancelada': return 'bg-red-100 text-red-700 border-red-200';
+      case 'en curso': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'programada': return 'bg-blue-100 text-blue-700 border-blue-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
 
   const [formData, setFormData] = useState({
     pacienteId: '',
@@ -194,6 +206,72 @@ const Citas = () => {
     // Estado Cita
     if (!formData.EstadoCitaId) {
       errors.EstadoCitaId = "El estado de la cita es obligatorio.";
+    }
+
+    // === NUEVAS VALIDACIONES DE TERAPEUTA ===
+    if (formData.terapeutaId && formData.fecha && formData.horaInicio && formData.duracionEstimada && !errors.fecha && !errors.horaInicio) {
+      // 1. Validar Día y Horario de Trabajo
+      if (foundData.terapeuta) {
+        const terapeuta = foundData.terapeuta;
+        
+        // Validar día
+        if (terapeuta.diasLaborales) {
+          const selectedDateObj = new Date(formData.fecha + 'T00:00:00');
+          let diaSemana = selectedDateObj.getDay(); 
+          if (diaSemana === 0) diaSemana = 7;
+          
+          const diasTrabajo = terapeuta.diasLaborales.split(',').map(Number);
+          if (!diasTrabajo.includes(diaSemana)) {
+            errors.fecha = "El terapeuta no trabaja en este día de la semana.";
+          }
+        }
+
+        // Validar horario
+        if (terapeuta.horaInicio && terapeuta.horaFin && !errors.fecha) {
+          const parseTime = (timeStr) => {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+          };
+          const tInicio = parseTime(terapeuta.horaInicio);
+          const tFin = parseTime(terapeuta.horaFin);
+          const cInicio = parseTime(formData.horaInicio);
+          const cFin = cInicio + parseInt(formData.duracionEstimada);
+
+          if (cInicio < tInicio || cFin > tFin) {
+            errors.horaInicio = "El horario está fuera de la jornada de trabajo del terapeuta.";
+          }
+        }
+      }
+
+      // 2. Validar Citas Sobrepuestas
+      if (!errors.fecha && !errors.horaInicio) {
+        const parseTime = (timeStr) => {
+          if (!timeStr) return 0;
+          const [h, m] = timeStr.split(':').map(Number);
+          return h * 60 + m;
+        };
+
+        const cInicio = parseTime(formData.horaInicio);
+        const cFin = cInicio + parseInt(formData.duracionEstimada);
+
+        const citasMismoDia = citas.filter(c => 
+          c.terapeutaId === parseInt(formData.terapeutaId) && 
+          c.fecha.split('T')[0] === formData.fecha &&
+          c.id !== (selectedCita ? selectedCita.id : 0) &&
+          c.estadoCita?.nombre?.toLowerCase() !== 'cancelada'
+        );
+
+        for (let cita of citasMismoDia) {
+          const citaInicio = parseTime(cita.horaInicio);
+          const citaFin = citaInicio + cita.duracionEstimada;
+
+          // Hay solapamiento si la nueva cita inicia antes de que termine la otra Y termina después de que inicie la otra
+          if (cInicio < citaFin && cFin > citaInicio) {
+            errors.horaInicio = "El terapeuta ya tiene una cita programada en este horario.";
+            break;
+          }
+        }
+      }
     }
 
     return errors;
@@ -376,7 +454,7 @@ const Citas = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full mx-auto">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
           <div>
@@ -405,53 +483,67 @@ const Citas = () => {
         </div>
 
         {view === 'list' ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-4">
+            {/* Filtro de Estado */}
+            <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                 <Filter size={18} className="text-slate-400" />
+                 <span className="text-sm font-bold text-slate-600">Filtrar por estado:</span>
+               </div>
+               <select 
+                 className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value)}
+               >
+                 <option value="">Todos los estados</option>
+                 {estadosCita.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+               </select>
+            </div>
+
             {loading ? (
-              <div className="col-span-full py-20 text-center font-black text-slate-300 animate-pulse text-2xl uppercase tracking-widest">
+              <div className="py-20 text-center font-black text-slate-300 animate-pulse text-2xl uppercase tracking-widest">
                 Cargando Agenda...
               </div>
             ) : (
-              citas.map(cita => (
-                <div key={cita.id} className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all group overflow-hidden">
-                  <div className="flex justify-between items-start mb-5">
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
-                      {cita.estadoCita?.nombre || "Cargando..."}
-                    </span>
-                    <CalendarIcon size={20} className="text-slate-200" />
-                  </div>
+              citas
+                .filter(cita => statusFilter ? cita.estadoCitaId === parseInt(statusFilter) : true)
+                .map(cita => (
+                <div key={cita.id} className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group flex flex-col md:flex-row items-center justify-between gap-6">
                   
-                  <div className="space-y-1 mb-6">
-                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Paciente</p>
-                    <h3 className="font-black text-slate-800 text-xl tracking-tight leading-tight">
-                      {getFullName(cita.paciente)}
-                    </h3>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
-                      <Stethoscope size={18}/>
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Terapeuta</p>
-                      <p className="font-bold text-slate-700 text-sm truncate">{getFullName(cita.terapeuta)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center text-[11px] font-black text-slate-400 pt-5 border-t border-slate-50 mb-4">
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon size={14}/>
-                      {new Date(cita.fecha).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14}/>
-                      {cita.horaInicio.substring(0, 5)}
-                    </div>
+                  {/* Paciente y Estado */}
+                  <div className="flex-1 w-full md:w-auto">
+                     <div className="flex items-center gap-3 mb-2">
+                       <span className={`${getStatusColor(cita.estadoCita?.nombre)} border text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest`}>{cita.estadoCita?.nombre || "Cargando..."}</span>
+                     </div>
+                     <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Paciente</p>
+                     <h3 className="font-black text-slate-800 text-lg tracking-tight leading-tight">{getFullName(cita.paciente)}</h3>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-50">
-                    <button onClick={() => handleView(cita)} className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"><Eye size={14}/> Ver</button>
-                    <button onClick={() => handleEdit(cita)} className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"><Edit size={14}/> Editar</button>
-                    <button onClick={() => handleDelete(cita.id)} className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors"><Trash2 size={14}/> Eliminar</button>
+                  {/* Terapeuta */}
+                  <div className="flex-1 w-full md:w-auto bg-slate-50 p-4 rounded-2xl flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
+                        <Stethoscope size={18}/>
+                     </div>
+                     <div className="overflow-hidden">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Terapeuta</p>
+                        <p className="font-bold text-slate-700 text-sm truncate">{getFullName(cita.terapeuta)}</p>
+                     </div>
+                  </div>
+
+                  {/* Fecha y Hora */}
+                  <div className="flex-1 w-full md:w-auto flex flex-col items-start md:items-center">
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha y Hora</p>
+                     <div className="flex items-center gap-4 text-sm font-bold text-slate-700">
+                        <div className="flex items-center gap-2"><CalendarIcon size={16} className="text-blue-500"/> {new Date(cita.fecha).toLocaleDateString()}</div>
+                        <div className="flex items-center gap-2"><Clock size={16} className="text-blue-500"/> {cita.horaInicio.substring(0, 5)}</div>
+                     </div>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button onClick={() => handleView(cita)} className="p-2 text-blue-600 hover:bg-blue-50 bg-slate-50 rounded-lg transition-colors" title="Ver"><Eye size={18}/></button>
+                    <button onClick={() => handleEdit(cita)} className="p-2 text-emerald-600 hover:bg-emerald-50 bg-slate-50 rounded-lg transition-colors" title="Editar"><Edit size={18}/></button>
+                    <button onClick={() => handleDelete(cita.id)} className="p-2 text-red-600 hover:bg-red-50 bg-slate-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={18}/></button>
                   </div>
                 </div>
               ))
