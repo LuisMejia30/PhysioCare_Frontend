@@ -16,6 +16,43 @@ import {
   Eye, Edit, Trash2, Filter
 } from 'lucide-react';
 
+const PageHeader = ({ title, subtitle, actionLabel, onAction, isPrimary = true }) => (
+  <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+    <div>
+      <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">{title}</h1>
+      <p className="text-slate-500 font-bold flex items-center gap-2 uppercase text-xs tracking-widest">
+        <Activity size={16} className="text-blue-600" /> {subtitle}
+      </p>
+    </div>
+
+    <button
+      onClick={onAction}
+      className={`px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${
+        isPrimary ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-slate-600 border-2 border-slate-100'
+      }`}
+    >
+      {actionLabel}
+    </button>
+  </div>
+);
+
+const getStatusColor = (statusName) => {
+  switch (statusName?.toLowerCase()) {
+    case 'completada': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    case 'confirmada': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    case 'cancelada': return 'bg-red-100 text-red-700 border-red-200';
+    case 'en curso': return 'bg-orange-100 text-orange-700 border-orange-200';
+    case 'programada': return 'bg-blue-100 text-blue-700 border-blue-200';
+    default: return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+};
+
+const EmptyState = ({ message }) => (
+  <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+    <p className="text-slate-400 font-medium">{message}</p>
+  </div>
+);
+
 const Citas = () => {
   const [view, setView] = useState('list');
   const [citas, setCitas] = useState([]);
@@ -456,31 +493,27 @@ const Citas = () => {
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans">
       <div className="w-full mx-auto">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Agenda Médica</h1>
-            <p className="text-slate-500 font-bold flex items-center gap-2 uppercase text-xs tracking-widest">
-              <Activity size={16} className="text-blue-600"/> PhysioCare Sistema
-            </p>
-          </div>
-          
-          <button 
-            onClick={() => { 
-              if(view === 'list') {
-                setView('form'); 
-                resetForm();
-                setSelectedCita(null);
-              } else {
-                setView('list');
-              }
-            }}
-            className={`px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${
-              view === 'list' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-slate-600 border-2 border-slate-100'
-            }`}
-          >
-            {view === 'list' ? <><ChevronRight size={20} /> NUEVA CITA</> : <><ArrowLeft size={20} /> VOLVER</>}
-          </button>
-        </div>
+        <PageHeader
+          title="Agenda Médica"
+          subtitle="PhysioCare Sistema"
+          onAction={() => {
+            if (view === 'list') {
+              setView('form');
+              resetForm();
+              setSelectedCita(null);
+            } else {
+              setView('list');
+            }
+          }}
+          actionLabel={
+            view === 'list' ? (
+              <><ChevronRight size={20} /> NUEVA CITA</>
+            ) : (
+              <><ArrowLeft size={20} /> VOLVER</>
+            )
+          }
+          isPrimary={view === 'list'}
+        />
 
         {view === 'list' ? (
           <div className="flex flex-col gap-4">
@@ -550,9 +583,7 @@ const Citas = () => {
             )}
             
             {citas.length === 0 && !loading && (
-              <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium">No hay citas registradas en la agenda todavía.</p>
-              </div>
+              <EmptyState message="No hay citas registradas en la agenda todavía." />
             )}
           </div>
         ) : view === 'detail' && selectedCita ? (

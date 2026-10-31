@@ -1,46 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, ArrowLeft, Save, UserCog, BadgeCheck, Phone, Mail, GraduationCap, Clock, Calendar as CalendarIcon, RefreshCw, User, Award, ClipboardList, Eye, Edit, Trash2 } from 'lucide-react';
-
-// --- COMPONENTES INTERNOS (CON SOPORTE DE ERRORES) ---
-
-const CustomInput = ({ label, icon: Icon, required, type = "text", error, ...props }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-bold text-slate-700 ml-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative group">
-      {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
-          <Icon size={18} />
-        </div>
-      )}
-      <input
-        type={type}
-        className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-3 bg-slate-50 border ${error ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-700`}
-        {...props}
-      />
-    </div>
-    {error && <p className="text-red-500 text-xs font-medium ml-1">{error}</p>}
-  </div>
-);
-
-const CustomSelect = ({ label, options, required, error, ...props }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-bold text-slate-700 ml-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <select
-      className={`w-full px-4 py-3 bg-slate-50 border ${error ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-700 appearance-none cursor-pointer`}
-      {...props}
-    >
-      <option value="">Seleccione una opción</option>
-      {options.map((opt) => (
-        <option key={opt.id} value={opt.id}>{opt.nombre}</option>
-      ))}
-    </select>
-    {error && <p className="text-red-500 text-xs font-medium ml-1">{error}</p>}
-  </div>
-);
+import CustomInput from '../Components/CustomInput';
+import CustomSelect from '../Components/CustomSelect';
 
 const Terapeutas = () => {
   const [view, setView] = useState('list');

@@ -1,60 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, ArrowLeft, Save, Activity, FileText, RefreshCw, Tag, AlertCircle, CheckCircle2, Award, Eye, Edit, Trash2 } from 'lucide-react';
-
-// --- COMPONENTES DE UI (CON SOPORTE DE ERRORES) ---
-const CustomInput = ({ label, icon: Icon, required, type = "text", error, ...props }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-bold text-slate-700 ml-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative group">
-      {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
-          <Icon size={18} />
-        </div>
-      )}
-      <input
-        type={type}
-        className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-3 bg-slate-50 border ${error ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-700`}
-        {...props}
-      />
-    </div>
-    {error && <p className="text-red-500 text-xs font-medium ml-1">{error}</p>}
-  </div>
-);
-
-const CustomSelect = ({ label, options, required, icon: Icon, disabled, error, ...props }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-bold text-slate-700 ml-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative group">
-      {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors pointer-events-none">
-          <Icon size={18} />
-        </div>
-      )}
-      <select
-        disabled={disabled}
-        className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-10 py-3 ${disabled ? 'bg-slate-100 cursor-not-allowed text-slate-400' : 'bg-slate-50 text-slate-700'} border ${error ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all appearance-none`}
-        {...props}
-      >
-        <option value="">{disabled ? 'Seleccione especialidad primero...' : 'Seleccione una opción...'}</option>
-        {options && options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.nombre}
-          </option>
-        ))}
-      </select>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-    </div>
-    {error && <p className="text-red-500 text-xs font-medium ml-1">{error}</p>}
-  </div>
-);
+import CustomInput from '../Components/CustomInput';
+import CustomSelect from '../Components/CustomSelect';
 
 const Terapias = () => {
   const [view, setView] = useState('list');
