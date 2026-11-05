@@ -1,9 +1,9 @@
-import { Menu, PlusCircle, LogOut } from 'lucide-react';
+import { Menu, PlusCircle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = ({ onMenuClick }) => {
   const location = useLocation();
-  const navigate = useNavigate(); // Hook para la navegación
+  const navigate = useNavigate();
 
   const pageNames = {
     '/': 'Principal',
@@ -15,7 +15,6 @@ const Navbar = ({ onMenuClick }) => {
   };
 
   const handleNuevaCita = () => {
-    // Navegamos a la ruta de citas pasándole un estado para indicar que queremos abrir el registro
     navigate('/citas', { state: { abrirRegistro: true } });
   };
 
@@ -32,16 +31,10 @@ const Navbar = ({ onMenuClick }) => {
       
       <div className="flex items-center gap-3">
         <button 
-          onClick={handleNuevaCita} // Evento de clic
+          onClick={handleNuevaCita}
           className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 shadow-md transition-all active:scale-95"
         >
           <PlusCircle size={18} /> Nueva Cita
-        </button>
-        <button 
-          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors" 
-          title="Cerrar Sesión"
-        >
-          <LogOut size={22} />
         </button>
       </div>
     </header>

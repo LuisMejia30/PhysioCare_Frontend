@@ -18,9 +18,7 @@ const Terapias = () => {
   const [message, setMessage] = useState(null);
   const [formErrors, setFormErrors] = useState({});
 
-  // --- CONFIGURACIÓN DE URL ---
-  // Cambiado a ServicioTerapias según el nombre de tu controlador
-  const API_BASE = "https://localhost:7205/api"; 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api'; 
   const ENDPOINT_TERAPIAS = `${API_BASE}/ServicioTerapias`;
 
   const initialFormState = {
@@ -32,11 +30,9 @@ const Terapias = () => {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // --- VALIDACIONES ---
   const validateForm = () => {
     const errors = {};
 
-    // Nombre del Servicio: obligatorio, entre 3 y 50 caracteres, sin números
     if (!formData.nombreServicio.trim()) {
       errors.nombreServicio = "El nombre del servicio es obligatorio.";
     } else if (/\d/.test(formData.nombreServicio)) {
@@ -45,17 +41,9 @@ const Terapias = () => {
       errors.nombreServicio = "Debe tener entre 3 y 50 caracteres.";
     }
 
-    // Especialidad (obligatorio)
-    if (!formData.especialidadId) {
-      errors.especialidadId = "La especialidad es obligatoria.";
-    }
+    if (!formData.especialidadId) errors.especialidadId = "La especialidad es obligatoria.";
+    if (!formData.CategoriaTerapiaId) errors.CategoriaTerapiaId = "La categoría es obligatoria.";
 
-    // Categoría (obligatorio)
-    if (!formData.CategoriaTerapiaId) {
-      errors.CategoriaTerapiaId = "La categoría es obligatoria.";
-    }
-
-    // Descripción: obligatorio, hasta 2000 caracteres
     if (!formData.descripcion.trim()) {
       errors.descripcion = "La descripción es obligatoria.";
     } else if (formData.descripcion.trim().length > 2000) {
@@ -68,7 +56,6 @@ const Terapias = () => {
   useEffect(() => {
     fetchTerapias();
     fetchEspecialidades();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTerapias = async () => {
@@ -109,12 +96,10 @@ const Terapias = () => {
   const handleChange = (field, value) => {
     let filteredValue = value;
 
-    // Filtrado en tiempo real: nombre del servicio sin números
     if (field === 'nombreServicio') {
       filteredValue = value.replace(/\d/g, '');
     }
 
-    // Aplicar límites de longitud máxima
     const maxLengths = {
       nombreServicio: 50,
       descripcion: 2000
@@ -130,7 +115,6 @@ const Terapias = () => {
       setFormData(prev => ({ ...prev, [field]: filteredValue }));
     }
 
-    // Limpiar el error del campo cuando el usuario empieza a corregir
     if (formErrors[field]) {
       setFormErrors(prev => {
         const updated = { ...prev };
@@ -180,13 +164,11 @@ const Terapias = () => {
     setSaving(true);
     setMessage(null);
 
-    // Ejecutar validaciones
     const errors = validateForm();
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
       setSaving(false);
-      // Hacer scroll al primer error
       setTimeout(() => {
         const firstErrorField = document.querySelector('.text-red-500.text-xs');
         if (firstErrorField) {
@@ -196,16 +178,12 @@ const Terapias = () => {
       return;
     }
 
-    // Objeto exacto que espera ServicioTerapia.cs
     const payload = {
       id: selectedTerapia ? selectedTerapia.id : 0,
       nombreServicio: formData.nombreServicio.trim(),
-      // IMPORTANTE: Convertir a Number para evitar Error 400 en el backend
       categoriaTerapiaId: Number(formData.CategoriaTerapiaId),
       descripcion: formData.descripcion?.trim() || ""
     };
-
-    console.log("Enviando datos a:", ENDPOINT_TERAPIAS, payload);
 
     try {
       const url = view === 'edit' ? `${ENDPOINT_TERAPIAS}/${selectedTerapia.id}` : ENDPOINT_TERAPIAS;
@@ -228,13 +206,9 @@ const Terapias = () => {
           setMessage(null);
         }, 1500);
       } else {
-        // Capturamos el error detallado de .NET
         const errorData = await response.json();
-        console.error("Error detallado del servidor:", errorData);
-        
         let errorMsg = "No se pudo guardar la terapia.";
         
-        // Manejo de errores de validación de ModelState de .NET
         if (errorData.errors) {
             errorMsg = Object.values(errorData.errors).flat().join(". ");
         } else if (errorData.title) {
@@ -251,7 +225,6 @@ const Terapias = () => {
     }
   };
 
-  // Renderizado de Lista
   if (view === 'list') {
     return (
       <div className="p-8 w-full mx-auto space-y-8">
@@ -308,8 +281,6 @@ const Terapias = () => {
               .filter(t => especialidadFilter ? t.categoriaTerapia?.especialidadId === parseInt(especialidadFilter) : true)
               .map(t => (
                 <div key={t.id} className="bg-white rounded-3xl p-5 md:p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow group flex flex-col md:flex-row items-center justify-between gap-6">
-                  
-                  {/* Icon and REF */}
                   <div className="flex flex-col items-center md:items-start gap-2 w-full md:w-auto">
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                       <Activity size={24} />
@@ -317,7 +288,6 @@ const Terapias = () => {
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">REF: {t.id}</span>
                   </div>
                   
-                  {/* Title and Category */}
                   <div className="flex-1 w-full text-center md:text-left">
                     <h3 className="text-xl font-black text-slate-800 mb-1 leading-tight">{t.nombreServicio}</h3>
                     <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold">
@@ -331,14 +301,12 @@ const Terapias = () => {
                     </div>
                   </div>
                   
-                  {/* Description */}
                   <div className="flex-1 w-full text-center md:text-left">
                      <p className="text-slate-500 text-sm line-clamp-2 md:line-clamp-3 leading-relaxed">
                        {t.descripcion || 'Sin descripción disponible.'}
                      </p>
                   </div>
                   
-                  {/* Actions */}
                   <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
                     <button onClick={() => handleView(t)} className="p-2 text-blue-600 hover:bg-blue-50 bg-slate-50 rounded-lg transition-colors" title="Ver"><Eye size={18}/></button>
                     <button onClick={() => handleEdit(t)} className="p-2 text-emerald-600 hover:bg-emerald-50 bg-slate-50 rounded-lg transition-colors" title="Editar"><Edit size={18}/></button>
@@ -406,7 +374,6 @@ const Terapias = () => {
     );
   }
 
-  // Renderizado de Formulario
   return (
     <div className="min-h-screen p-6 md:p-12 bg-slate-50">
       <div className="max-w-2xl mx-auto">

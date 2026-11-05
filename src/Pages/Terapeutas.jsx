@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, ArrowLeft, Save, UserCog, BadgeCheck, Phone, Mail, GraduationCap, Clock, Calendar as CalendarIcon, RefreshCw, User, Award, ClipboardList, Eye, Edit, Trash2 } from 'lucide-react';
 import CustomInput from '../Components/CustomInput';
@@ -13,6 +14,8 @@ const Terapeutas = () => {
   const [selectedTerapeuta, setSelectedTerapeuta] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
+
   const initialFormState = {
     especialidadTerapeutaId: "",
     tarjetaProfesional: "",
@@ -41,25 +44,19 @@ const Terapeutas = () => {
     { id: 6, nombre: "Sáb", full: "Sábado" }
   ];
 
-  // --- VALIDACIONES ---
   const validateForm = () => {
     const errors = {};
     const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
     const soloDigitos = /^\d+$/;
 
-    // Especialidad (obligatorio)
-    if (!formData.especialidadTerapeutaId) {
-      errors.especialidadTerapeutaId = "La especialidad es obligatoria.";
-    }
+    if (!formData.especialidadTerapeutaId) errors.especialidadTerapeutaId = "La especialidad es obligatoria.";
 
-    // Tarjeta Profesional: obligatorio, exactamente 9 caracteres
     if (!formData.tarjetaProfesional.trim()) {
       errors.tarjetaProfesional = "La tarjeta profesional es obligatoria.";
     } else if (formData.tarjetaProfesional.trim().length !== 9) {
       errors.tarjetaProfesional = "Debe tener exactamente 9 caracteres.";
     }
 
-    // Primer Nombre: obligatorio, solo letras, entre 3 y 25 caracteres
     if (!formData.primerNombre.trim()) {
       errors.primerNombre = "El primer nombre es obligatorio.";
     } else if (!soloLetras.test(formData.primerNombre.trim())) {
@@ -68,7 +65,6 @@ const Terapeutas = () => {
       errors.primerNombre = "Debe tener entre 3 y 25 caracteres.";
     }
 
-    // Segundo Nombre: no obligatorio, pero si se llena → solo letras, entre 3 y 25
     if (formData.segundoNombre.trim()) {
       if (!soloLetras.test(formData.segundoNombre.trim())) {
         errors.segundoNombre = "Solo se permiten letras (sin números ni caracteres especiales).";
@@ -77,7 +73,6 @@ const Terapeutas = () => {
       }
     }
 
-    // Primer Apellido: obligatorio, solo letras, entre 3 y 25 caracteres
     if (!formData.primerApellido.trim()) {
       errors.primerApellido = "El primer apellido es obligatorio.";
     } else if (!soloLetras.test(formData.primerApellido.trim())) {
@@ -86,7 +81,6 @@ const Terapeutas = () => {
       errors.primerApellido = "Debe tener entre 3 y 25 caracteres.";
     }
 
-    // Segundo Apellido: no obligatorio, pero si se llena → solo letras, entre 3 y 25
     if (formData.segundoApellido.trim()) {
       if (!soloLetras.test(formData.segundoApellido.trim())) {
         errors.segundoApellido = "Solo se permiten letras (sin números ni caracteres especiales).";
@@ -95,12 +89,8 @@ const Terapeutas = () => {
       }
     }
 
-    // Tipo de Documento (obligatorio)
-    if (!formData.tipoDocumentoId) {
-      errors.tipoDocumentoId = "El tipo de documento es obligatorio.";
-    }
+    if (!formData.tipoDocumentoId) errors.tipoDocumentoId = "El tipo de documento es obligatorio.";
 
-    // Número de Documento: obligatorio, solo dígitos, entre 7 y 10 dígitos
     if (!formData.numeroDocumento.trim()) {
       errors.numeroDocumento = "El número de documento es obligatorio.";
     } else if (!soloDigitos.test(formData.numeroDocumento.trim())) {
@@ -109,12 +99,8 @@ const Terapeutas = () => {
       errors.numeroDocumento = "Debe tener entre 7 y 10 dígitos.";
     }
 
-    // Fecha de Nacimiento (obligatorio)
-    if (!formData.fechaNacimiento) {
-      errors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
-    }
+    if (!formData.fechaNacimiento) errors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
 
-    // Correo Laboral: obligatorio, hasta 50 caracteres, formato válido
     if (!formData.correoLaboral.trim()) {
       errors.correoLaboral = "El correo laboral es obligatorio.";
     } else if (formData.correoLaboral.trim().length > 50) {
@@ -123,7 +109,6 @@ const Terapeutas = () => {
       errors.correoLaboral = "Ingrese un correo electrónico válido.";
     }
 
-    // Teléfono de Contacto: obligatorio, solo dígitos, exactamente 10 dígitos
     if (!formData.telefonoContacto.trim()) {
       errors.telefonoContacto = "El teléfono de contacto es obligatorio.";
     } else if (!soloDigitos.test(formData.telefonoContacto.trim())) {
@@ -132,22 +117,13 @@ const Terapeutas = () => {
       errors.telefonoContacto = "Debe tener exactamente 10 dígitos.";
     }
 
-    // Hora de Inicio (obligatorio)
-    if (!formData.horaInicio) {
-      errors.horaInicio = "La hora de inicio es obligatoria.";
-    }
+    if (!formData.horaInicio) errors.horaInicio = "La hora de inicio es obligatoria.";
+    if (!formData.horaFin) errors.horaFin = "La hora de fin es obligatoria.";
 
-    // Hora de Fin (obligatorio)
-    if (!formData.horaFin) {
-      errors.horaFin = "La hora de fin es obligatoria.";
-    }
-
-    // Validar que hora fin sea mayor que hora inicio
     if (formData.horaInicio && formData.horaFin && formData.horaInicio >= formData.horaFin) {
       errors.horaFin = "La hora de fin debe ser posterior a la hora de inicio.";
     }
 
-    // Días de semana (obligatorio, al menos uno)
     if (formData.diasSeleccionados.length === 0) {
       errors.diasSeleccionados = "Debe seleccionar al menos un día de atención.";
     }
@@ -158,10 +134,10 @@ const Terapeutas = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const resT = await fetch('https://localhost:7205/api/Terapeutas');
+      const resT = await fetch(`${API_BASE}/Terapeutas`);
       if (resT.ok) setTerapeutas(await resT.json());
       
-      const baseUrl = 'https://localhost:7205/api/Catalogos';
+      const baseUrl = `${API_BASE}/Catalogos`;
       const [esp, docs] = await Promise.all([
         fetch(`${baseUrl}/Especialidades`).then(r => r.json()),
         fetch(`${baseUrl}/TiposDocumento`).then(r => r.json())
@@ -172,26 +148,21 @@ const Terapeutas = () => {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      fetchData();
-    }, 0);
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let filteredValue = value;
 
-    // Campos que solo aceptan dígitos
     if (['numeroDocumento', 'telefonoContacto'].includes(name)) {
       filteredValue = value.replace(/\D/g, '');
     }
 
-    // Campos que solo aceptan letras y espacios
     if (['primerNombre', 'segundoNombre', 'primerApellido', 'segundoApellido'].includes(name)) {
       filteredValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
     }
 
-    // Aplicar límites de longitud máxima
     const maxLengths = {
       tarjetaProfesional: 9,
       primerNombre: 25,
@@ -209,7 +180,6 @@ const Terapeutas = () => {
 
     setFormData(prev => ({ ...prev, [name]: filteredValue }));
 
-    // Limpiar el error del campo cuando el usuario empieza a corregir
     if (formErrors[name]) {
       setFormErrors(prev => {
         const updated = { ...prev };
@@ -227,7 +197,6 @@ const Terapeutas = () => {
         : [...prev.diasSeleccionados, id]
     }));
 
-    // Limpiar error de días al seleccionar uno
     if (formErrors.diasSeleccionados) {
       setFormErrors(prev => {
         const updated = { ...prev };
@@ -267,7 +236,7 @@ const Terapeutas = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este terapeuta?")) {
       try {
-        const response = await fetch(`https://localhost:7205/api/Terapeutas/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/Terapeutas/${id}`, { method: 'DELETE' });
         if (response.ok) {
           alert("Terapeuta eliminado con éxito.");
           fetchData();
@@ -281,16 +250,13 @@ const Terapeutas = () => {
     }
   };
 
-  // --- LÓGICA DE ENVÍO CON VALIDACIÓN ---
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ejecutar validaciones
     const errors = validateForm();
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      // Hacer scroll al primer error
       const firstErrorField = document.querySelector('.text-red-500.text-xs');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -298,7 +264,6 @@ const Terapeutas = () => {
       return;
     }
     
-    // Mapeo de datos para cumplir con el modelo C#
     const payload = {
       id: selectedTerapeuta ? selectedTerapeuta.id : 0,
       especialidadTerapeutaId: parseInt(formData.especialidadTerapeutaId),
@@ -312,14 +277,13 @@ const Terapeutas = () => {
       fechaNacimiento: new Date(formData.fechaNacimiento).toISOString(),
       correoLaboral: formData.correoLaboral,
       telefonoContacto: parseInt(formData.telefonoContacto),
-      // Agregamos :00 internamente para que C# reciba el TimeSpan correcto
       horaInicio: formData.horaInicio.length === 5 ? `${formData.horaInicio}:00` : formData.horaInicio,
       horaFin: formData.horaFin.length === 5 ? `${formData.horaFin}:00` : formData.horaFin,
       diasLaborales: formData.diasSeleccionados.sort().join(",")
     };
 
     try {
-      const url = view === 'edit' ? `https://localhost:7205/api/Terapeutas/${selectedTerapeuta.id}` : 'https://localhost:7205/api/Terapeutas';
+      const url = view === 'edit' ? `${API_BASE}/Terapeutas/${selectedTerapeuta.id}` : `${API_BASE}/Terapeutas`;
       const response = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -340,7 +304,6 @@ const Terapeutas = () => {
     } catch (e) { console.error(e); }
   };
 
-  // --- RENDERIZADO ---
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 md:p-8">
       <div className="w-full mx-auto space-y-6">
@@ -373,7 +336,6 @@ const Terapeutas = () => {
 
         {view === 'list' ? (
           <div className="space-y-6">
-            {/* Filtros */}
             <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -556,7 +518,6 @@ const Terapeutas = () => {
                     <h3 className="font-bold text-slate-800">Jornada y Horarios</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Días */}
                     <div className="space-y-3">
                       <label className="block text-sm font-bold text-slate-700 ml-1">Días de Atención <span className="text-red-500">*</span></label>
                       <div className="grid grid-cols-3 gap-2">
@@ -578,7 +539,6 @@ const Terapeutas = () => {
                       {formErrors.diasSeleccionados && <p className="text-red-500 text-xs font-medium ml-1">{formErrors.diasSeleccionados}</p>}
                     </div>
 
-                    {/* Horario */}
                     <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
                         <CalendarIcon size={14} /> Rango Horario

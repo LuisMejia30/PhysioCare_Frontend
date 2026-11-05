@@ -32,7 +32,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const API_BASE = 'https://localhost:7205/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 const getFecha = (item) => {
@@ -44,7 +44,7 @@ const getFecha = (item) => {
   return new Date();
 };
 
-const StatCard = ({ icon: Icon, label, value, colorClass }) => (
+const StatCard = ({  label, value, colorClass }) => (
   <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center">
     <Icon className={`${colorClass} mb-2`} size={24} />
     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
@@ -52,7 +52,7 @@ const StatCard = ({ icon: Icon, label, value, colorClass }) => (
   </div>
 );
 
-const ChartPanel = ({ title, subtitle, icon: Icon, iconClass, children, height = 300 }) => (
+const ChartPanel = ({ title, subtitle, iconClass, children, height = 300 }) => (
   <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">

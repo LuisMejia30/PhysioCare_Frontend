@@ -8,12 +8,13 @@ import Citas from './Pages/Citas';
 import Reportes from './Pages/Reportes';
 import Login from './Pages/Login';
 
-// Componente para proteger las rutas
+// Componente para proteger las rutas verificando el token JWT
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  // Ahora comprobamos si existe el token que nos devuelve el backend
+  const token = localStorage.getItem('token');
   
-  if (!isAuthenticated) {
-    // Redirige al login si no está autenticado
+  if (!token) {
+    // Redirige al login si no está autenticado (no hay token)
     return <Navigate to="/login" replace />;
   }
 

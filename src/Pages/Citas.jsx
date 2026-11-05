@@ -60,7 +60,7 @@ const Citas = () => {
   const [saving, setSaving] = useState(false);
   const [selectedCita, setSelectedCita] = useState(null);
 
-  const API_BASE = "https://localhost:7205/api";
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
 
   const [searchDocs, setSearchDocs] = useState({ pacienteDoc: '', terapeutaDoc: '' });
   const [searching, setSearching] = useState({ paciente: false, terapeuta: false });
@@ -71,17 +71,6 @@ const Citas = () => {
   const [estadosCita, setEstadosCita] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [statusFilter, setStatusFilter] = useState('');
-
-  const getStatusColor = (statusName) => {
-    switch (statusName?.toLowerCase()) {
-      case 'completada': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'confirmada': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'cancelada': return 'bg-red-100 text-red-700 border-red-200';
-      case 'en curso': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'programada': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-slate-100 text-slate-700 border-slate-200';
-    }
-  };
 
   const [formData, setFormData] = useState({
     pacienteId: '',
@@ -159,7 +148,6 @@ const Citas = () => {
           if (sResp.ok) setServicios(await sResp.json());
         }
 
-        // Limpiar error de validación del formulario
         const fieldName = tipo === 'paciente' ? 'pacienteId' : 'terapeutaId';
         if (formErrors[fieldName]) {
           setFormErrors(prev => {
@@ -184,22 +172,10 @@ const Citas = () => {
   const validateForm = () => {
     const errors = {};
 
-    // Paciente
-    if (!formData.pacienteId) {
-      errors.pacienteId = "Debe buscar y seleccionar un paciente por su documento.";
-    }
+    if (!formData.pacienteId) errors.pacienteId = "Debe buscar y seleccionar un paciente por su documento.";
+    if (!formData.terapeutaId) errors.terapeutaId = "Debe buscar y seleccionar un terapeuta por su documento.";
+    if (!formData.servicioTerapiaId) errors.servicioTerapiaId = "El servicio de terapia es obligatorio.";
 
-    // Terapeuta
-    if (!formData.terapeutaId) {
-      errors.terapeutaId = "Debe buscar y seleccionar un terapeuta por su documento.";
-    }
-
-    // Servicio
-    if (!formData.servicioTerapiaId) {
-      errors.servicioTerapiaId = "El servicio de terapia es obligatorio.";
-    }
-
-    // Fecha
     if (!formData.fecha) {
       errors.fecha = "La fecha de la cita es obligatoria.";
     } else {
@@ -211,7 +187,6 @@ const Citas = () => {
       }
     }
 
-    // Hora
     if (!formData.horaInicio) {
       errors.horaInicio = "La hora de inicio es obligatoria.";
     } else if (formData.fecha) {
@@ -228,7 +203,6 @@ const Citas = () => {
       }
     }
 
-    // Duración
     if (!formData.duracionEstimada) {
       errors.duracionEstimada = "La duración es obligatoria.";
     } else {
@@ -240,18 +214,12 @@ const Citas = () => {
       }
     }
 
-    // Estado Cita
-    if (!formData.EstadoCitaId) {
-      errors.EstadoCitaId = "El estado de la cita es obligatorio.";
-    }
+    if (!formData.EstadoCitaId) errors.EstadoCitaId = "El estado de la cita es obligatorio.";
 
-    // === NUEVAS VALIDACIONES DE TERAPEUTA ===
     if (formData.terapeutaId && formData.fecha && formData.horaInicio && formData.duracionEstimada && !errors.fecha && !errors.horaInicio) {
-      // 1. Validar Día y Horario de Trabajo
       if (foundData.terapeuta) {
         const terapeuta = foundData.terapeuta;
         
-        // Validar día
         if (terapeuta.diasLaborales) {
           const selectedDateObj = new Date(formData.fecha + 'T00:00:00');
           let diaSemana = selectedDateObj.getDay(); 
@@ -263,7 +231,6 @@ const Citas = () => {
           }
         }
 
-        // Validar horario
         if (terapeuta.horaInicio && terapeuta.horaFin && !errors.fecha) {
           const parseTime = (timeStr) => {
             const [h, m] = timeStr.split(':').map(Number);
@@ -280,7 +247,6 @@ const Citas = () => {
         }
       }
 
-      // 2. Validar Citas Sobrepuestas
       if (!errors.fecha && !errors.horaInicio) {
         const parseTime = (timeStr) => {
           if (!timeStr) return 0;
@@ -302,7 +268,6 @@ const Citas = () => {
           const citaInicio = parseTime(cita.horaInicio);
           const citaFin = citaInicio + cita.duracionEstimada;
 
-          // Hay solapamiento si la nueva cita inicia antes de que termine la otra Y termina después de que inicie la otra
           if (cInicio < citaFin && cFin > citaInicio) {
             errors.horaInicio = "El terapeuta ya tiene una cita programada en este horario.";
             break;
@@ -447,13 +412,10 @@ const Citas = () => {
     setSearchDocs(prev => ({ ...prev, [`${tipo}Doc`]: digitsOnly }));
     setSearchErrors(prev => ({ ...prev, [tipo]: null }));
     
-    // Si cambia el documento, desvincular el ID previamente buscado
     if (foundData[tipo]) {
       setFoundData(prev => ({ ...prev, [tipo]: null }));
       setFormData(prev => ({ ...prev, [tipo === 'paciente' ? 'pacienteId' : 'terapeutaId']: '' }));
-      if (tipo === 'terapeuta') {
-        setServicios([]);
-      }
+      if (tipo === 'terapeuta') setServicios([]);
     }
 
     const fieldName = tipo === 'paciente' ? 'pacienteId' : 'terapeutaId';
@@ -492,7 +454,6 @@ const Citas = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans">
       <div className="w-full mx-auto">
-        
         <PageHeader
           title="Agenda Médica"
           subtitle="PhysioCare Sistema"
@@ -517,7 +478,6 @@ const Citas = () => {
 
         {view === 'list' ? (
           <div className="flex flex-col gap-4">
-            {/* Filtro de Estado */}
             <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between">
                <div className="flex items-center gap-3">
                  <Filter size={18} className="text-slate-400" />
@@ -543,7 +503,6 @@ const Citas = () => {
                 .map(cita => (
                 <div key={cita.id} className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group flex flex-col md:flex-row items-center justify-between gap-6">
                   
-                  {/* Paciente y Estado */}
                   <div className="flex-1 w-full md:w-auto">
                      <div className="flex items-center gap-3 mb-2">
                        <span className={`${getStatusColor(cita.estadoCita?.nombre)} border text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest`}>{cita.estadoCita?.nombre || "Cargando..."}</span>
@@ -552,7 +511,6 @@ const Citas = () => {
                      <h3 className="font-black text-slate-800 text-lg tracking-tight leading-tight">{getFullName(cita.paciente)}</h3>
                   </div>
 
-                  {/* Terapeuta */}
                   <div className="flex-1 w-full md:w-auto bg-slate-50 p-4 rounded-2xl flex items-center gap-3">
                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
                         <Stethoscope size={18}/>
@@ -563,7 +521,6 @@ const Citas = () => {
                      </div>
                   </div>
 
-                  {/* Fecha y Hora */}
                   <div className="flex-1 w-full md:w-auto flex flex-col items-start md:items-center">
                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha y Hora</p>
                      <div className="flex items-center gap-4 text-sm font-bold text-slate-700">
@@ -572,7 +529,6 @@ const Citas = () => {
                      </div>
                   </div>
 
-                  {/* Acciones */}
                   <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                     <button onClick={() => handleView(cita)} className="p-2 text-blue-600 hover:bg-blue-50 bg-slate-50 rounded-lg transition-colors" title="Ver"><Eye size={18}/></button>
                     <button onClick={() => handleEdit(cita)} className="p-2 text-emerald-600 hover:bg-emerald-50 bg-slate-50 rounded-lg transition-colors" title="Editar"><Edit size={18}/></button>
@@ -629,9 +585,7 @@ const Citas = () => {
           </div>
         ) : (
           <div className="grid lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
-            
             <div className="lg:col-span-5 space-y-6">
-              {/* BÚSQUEDA PACIENTE */}
               <div className={`bg-white p-7 rounded-[2.5rem] shadow-sm border ${formErrors.pacienteId ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-100'} transition-all`}>
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">1. Localizar Paciente <span className="text-red-500">*</span></label>
                 <div className="flex gap-3 mb-4">
@@ -662,7 +616,6 @@ const Citas = () => {
                 {formErrors.pacienteId && <p className="text-red-500 text-[11px] font-bold mt-2 flex items-center gap-1"><AlertCircle size={14}/> {formErrors.pacienteId}</p>}
               </div>
 
-              {/* BÚSQUEDA TERAPEUTA */}
               <div className={`bg-white p-7 rounded-[2.5rem] shadow-sm border ${formErrors.terapeutaId ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-100'} transition-all`}>
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">2. Asignar Terapeuta <span className="text-red-500">*</span></label>
                 <div className="flex gap-3 mb-4">

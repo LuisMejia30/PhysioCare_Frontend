@@ -8,15 +8,17 @@ export const useCatalogos = () => {
         estadosCiviles: [],
         especialidades: [],
         categoriasTerapias: [],
-        estadosCitas: [] // Nuevo catálogo añadido
+        estadosCitas: []
     });
 
     useEffect(() => {
         const cargarDatos = async () => {
-            const baseUrl = 'https://localhost:7205/api/Catalogos';
+            // Lee la URL base desde .env (VITE_API_URL) o usa el puerto 5298 por defecto
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
+            const baseUrl = `${API_URL}/Catalogos`;
             
             try {
-                // Hacemos todas las peticiones en paralelo
+                // Peticiones en paralelo a los endpoints dinámicos
                 const [gen, doc, san, civ, esp, cat, est] = await Promise.all([
                     fetch(`${baseUrl}/Generos`).then(r => r.json()),
                     fetch(`${baseUrl}/TiposDocumento`).then(r => r.json()),
@@ -24,7 +26,7 @@ export const useCatalogos = () => {
                     fetch(`${baseUrl}/EstadosCiviles`).then(r => r.json()),
                     fetch(`${baseUrl}/Especialidades`).then(r => r.json()),
                     fetch(`${baseUrl}/CategoriasTerapias`).then(r => r.json()),
-                    fetch(`${baseUrl}/EstadosCitas`).then(r => r.json()), // Petición al nuevo endpoint
+                    fetch(`${baseUrl}/EstadosCitas`).then(r => r.json()),
                 ]);
 
                 setCatalogos({
@@ -34,7 +36,7 @@ export const useCatalogos = () => {
                     estadosCiviles: civ,
                     especialidades: esp,
                     categoriasTerapias: cat,
-                    estadosCitas: est // Guardamos los estados de cita
+                    estadosCitas: est
                 });
             } catch (error) {
                 console.error("Error cargando catálogos:", error);

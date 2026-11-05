@@ -29,13 +29,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('https://localhost:7205/api/Auth/login', {
+      const response = await fetch(`${API_BASE}/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -49,14 +51,25 @@ const Login = () => {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (!data.success || !data.token) {
         setError(data.message || 'Credenciales incorrectas');
         return;
       }
 
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('username', data.username || username);
-      navigate('/');
+      localStorage.setItem('username', data.user?.username || username);
+
+      const roleRoutes = {
+        Administrador: '/',
+        Recepcionista: '/pacientes',
+        Terapeuta: '/citas',
+        Paciente: '/citas'
+      };
+
+      const targetPath = roleRoutes[data.user?.rol] || '/';
+      navigate(targetPath);
     } catch (err) {
       console.error(err);
       setError('Error de red. Intenta nuevamente.');

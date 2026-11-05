@@ -11,7 +11,8 @@ const Pacientes = () => {
   const [selectedPaciente, setSelectedPaciente] = useState(null);
   const [formErrors, setFormErrors] = useState({});
 
-  // Estados para catálogos (Dropdowns)
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
+
   const [catalogos, setCatalogos] = useState({
     tiposDoc: [],
     generos: [],
@@ -39,18 +40,13 @@ const Pacientes = () => {
 
   const [formData, setFormData] = useState(initialState);
 
-  // --- VALIDACIONES ---
   const validateForm = () => {
     const errors = {};
     const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
     const soloDigitos = /^\d+$/;
 
-    // Tipo de Documento (obligatorio)
-    if (!formData.tipoDocumentoId) {
-      errors.tipoDocumentoId = "El tipo de documento es obligatorio.";
-    }
+    if (!formData.tipoDocumentoId) errors.tipoDocumentoId = "El tipo de documento es obligatorio.";
 
-    // Número de Documento: obligatorio, solo dígitos, entre 7 y 10 dígitos
     if (!formData.numeroDocumento.trim()) {
       errors.numeroDocumento = "El número de documento es obligatorio.";
     } else if (!soloDigitos.test(formData.numeroDocumento.trim())) {
@@ -59,12 +55,8 @@ const Pacientes = () => {
       errors.numeroDocumento = "Debe tener entre 7 y 10 dígitos.";
     }
 
-    // Género (obligatorio)
-    if (!formData.generoId) {
-      errors.generoId = "El género es obligatorio.";
-    }
+    if (!formData.generoId) errors.generoId = "El género es obligatorio.";
 
-    // Primer Nombre: obligatorio, solo letras, entre 3 y 25 caracteres
     if (!formData.primerNombre.trim()) {
       errors.primerNombre = "El primer nombre es obligatorio.";
     } else if (!soloLetras.test(formData.primerNombre.trim())) {
@@ -73,7 +65,6 @@ const Pacientes = () => {
       errors.primerNombre = "Debe tener entre 3 y 25 caracteres.";
     }
 
-    // Segundo Nombre: no obligatorio, pero si se llena → solo letras, entre 3 y 25
     if (formData.segundoNombre.trim()) {
       if (!soloLetras.test(formData.segundoNombre.trim())) {
         errors.segundoNombre = "Solo se permiten letras (sin números ni caracteres especiales).";
@@ -82,7 +73,6 @@ const Pacientes = () => {
       }
     }
 
-    // Primer Apellido: obligatorio, solo letras, entre 3 y 25 caracteres
     if (!formData.primerApellido.trim()) {
       errors.primerApellido = "El primer apellido es obligatorio.";
     } else if (!soloLetras.test(formData.primerApellido.trim())) {
@@ -91,7 +81,6 @@ const Pacientes = () => {
       errors.primerApellido = "Debe tener entre 3 y 25 caracteres.";
     }
 
-    // Segundo Apellido: no obligatorio, pero si se llena → solo letras, entre 3 y 25
     if (formData.segundoApellido.trim()) {
       if (!soloLetras.test(formData.segundoApellido.trim())) {
         errors.segundoApellido = "Solo se permiten letras (sin números ni caracteres especiales).";
@@ -100,22 +89,10 @@ const Pacientes = () => {
       }
     }
 
-    // Tipo de Sangre (obligatorio)
-    if (!formData.tipoSangreId) {
-      errors.tipoSangreId = "El tipo de sangre es obligatorio.";
-    }
+    if (!formData.tipoSangreId) errors.tipoSangreId = "El tipo de sangre es obligatorio.";
+    if (!formData.fechaNacimiento) errors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
+    if (!formData.estadoCivilId) errors.estadoCivilId = "El estado civil es obligatorio.";
 
-    // Fecha de Nacimiento (obligatorio)
-    if (!formData.fechaNacimiento) {
-      errors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
-    }
-
-    // Estado Civil (obligatorio)
-    if (!formData.estadoCivilId) {
-      errors.estadoCivilId = "El estado civil es obligatorio.";
-    }
-
-    // Teléfono Personal: obligatorio, solo dígitos, exactamente 10 dígitos
     if (!formData.telefono.trim()) {
       errors.telefono = "El teléfono es obligatorio.";
     } else if (!soloDigitos.test(formData.telefono.trim())) {
@@ -124,7 +101,6 @@ const Pacientes = () => {
       errors.telefono = "Debe tener exactamente 10 dígitos.";
     }
 
-    // Correo Electrónico: obligatorio, hasta 50 caracteres, formato válido
     if (!formData.correoElectronico.trim()) {
       errors.correoElectronico = "El correo electrónico es obligatorio.";
     } else if (formData.correoElectronico.trim().length > 50) {
@@ -133,14 +109,12 @@ const Pacientes = () => {
       errors.correoElectronico = "Ingrese un correo electrónico válido.";
     }
 
-    // Dirección de Residencia: obligatorio, entre 5 y 200 caracteres
     if (!formData.direccionResidencia.trim()) {
       errors.direccionResidencia = "La dirección de residencia es obligatoria.";
     } else if (formData.direccionResidencia.trim().length < 5 || formData.direccionResidencia.trim().length > 200) {
       errors.direccionResidencia = "Debe tener entre 5 y 200 caracteres.";
     }
 
-    // Teléfono de Emergencia: obligatorio, solo dígitos, exactamente 10 dígitos
     if (!formData.telefonoEmergencia.trim()) {
       errors.telefonoEmergencia = "El teléfono de emergencia es obligatorio.";
     } else if (!soloDigitos.test(formData.telefonoEmergencia.trim())) {
@@ -149,7 +123,6 @@ const Pacientes = () => {
       errors.telefonoEmergencia = "Debe tener exactamente 10 dígitos.";
     }
 
-    // Resumen Clínico: obligatorio, hasta 2000 caracteres
     if (!formData.resumenClinico.trim()) {
       errors.resumenClinico = "El resumen clínico es obligatorio.";
     } else if (formData.resumenClinico.trim().length > 2000) {
@@ -161,7 +134,7 @@ const Pacientes = () => {
 
   const fetchCatalogos = async () => {
     try {
-      const baseUrl = 'https://localhost:7205/api/Catalogos';
+      const baseUrl = `${API_BASE}/Catalogos`;
       const [doc, gen, sang, civ] = await Promise.all([
         fetch(`${baseUrl}/TiposDocumento`).then(res => res.json()),
         fetch(`${baseUrl}/Generos`).then(res => res.json()),
@@ -177,7 +150,7 @@ const Pacientes = () => {
   const fetchPacientes = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://localhost:7205/api/Pacientes');
+      const response = await fetch(`${API_BASE}/Pacientes`);
       if (response.ok) {
         const data = await response.json();
         setPacientes(data);
@@ -195,20 +168,16 @@ const Pacientes = () => {
   }, []);
 
   const handleChange = (name, value) => {
-    // Filtrado en tiempo real según el campo
     let filteredValue = value;
 
-    // Campos que solo aceptan dígitos
     if (['numeroDocumento', 'telefono', 'telefonoEmergencia'].includes(name)) {
       filteredValue = value.replace(/\D/g, '');
     }
 
-    // Campos que solo aceptan letras y espacios
     if (['primerNombre', 'segundoNombre', 'primerApellido', 'segundoApellido'].includes(name)) {
       filteredValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
     }
 
-    // Aplicar límites de longitud máxima
     const maxLengths = {
       numeroDocumento: 10,
       primerNombre: 25,
@@ -228,7 +197,6 @@ const Pacientes = () => {
 
     setFormData(prev => ({ ...prev, [name]: filteredValue }));
 
-    // Limpiar el error del campo cuando el usuario empieza a corregir
     if (formErrors[name]) {
       setFormErrors(prev => {
         const updated = { ...prev };
@@ -269,7 +237,7 @@ const Pacientes = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este paciente?")) {
       try {
-        const response = await fetch(`https://localhost:7205/api/Pacientes/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/Pacientes/${id}`, { method: 'DELETE' });
         if (response.ok) {
           alert("Paciente eliminado con éxito.");
           fetchPacientes();
@@ -286,22 +254,17 @@ const Pacientes = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ejecutar validaciones
     const errors = validateForm();
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      // Hacer scroll al primer error
       const firstErrorField = document.querySelector('.text-red-500.text-xs');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
-    
-    // CONSTRUCCIÓN DEL OBJETO EXACTO PARA EL BACKEND
-    // Nota: Las propiedades virtuales se envían como null para evitar que el validador
-    // de .NET intente crear objetos TipoDocumento, Genero, etc. vacíos.
+
     const payload = {
       id: selectedPaciente ? selectedPaciente.id : 0,
       tipoDocumentoId: parseInt(formData.tipoDocumentoId),
@@ -325,15 +288,11 @@ const Pacientes = () => {
       resumenClinico: formData.resumenClinico?.trim() || ""
     };
 
-    console.log("Enviando JSON:", payload);
-
     try {
-      const url = view === 'edit' ? `https://localhost:7205/api/Pacientes/${selectedPaciente.id}` : 'https://localhost:7205/api/Pacientes';
+      const url = view === 'edit' ? `${API_BASE}/Pacientes/${selectedPaciente.id}` : `${API_BASE}/Pacientes`;
       const response = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
@@ -346,14 +305,6 @@ const Pacientes = () => {
       } else {
         const errorData = await response.json();
         console.error("ERROR DEL SERVIDOR (400):", errorData);
-        
-        // Si hay errores de validación, los mostramos detalladamente en consola
-        if (errorData.errors) {
-            console.warn("Detalles de validación fallida:");
-            Object.keys(errorData.errors).forEach(key => {
-                console.error(`Campo: ${key} -> Mensaje: ${errorData.errors[key].join(', ')}`);
-            });
-        }
         alert("Error al guardar. Revisa la consola (F12) para ver qué campo no cumple los requisitos.");
       }
     } catch (err) {
@@ -363,7 +314,6 @@ const Pacientes = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Pacientes</h2>
