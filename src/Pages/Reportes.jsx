@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import {
   Users,
@@ -44,7 +45,7 @@ const getFecha = (item) => {
   return new Date();
 };
 
-const StatCard = ({  label, value, colorClass }) => (
+const StatCard = ({ icon: Icon, label, value, colorClass }) => (
   <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center">
     <Icon className={`${colorClass} mb-2`} size={24} />
     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
@@ -52,7 +53,7 @@ const StatCard = ({  label, value, colorClass }) => (
   </div>
 );
 
-const ChartPanel = ({ title, subtitle, iconClass, children, height = 300 }) => (
+const ChartPanel = ({ title, subtitle, icon: Icon, iconClass, children, height = 300 }) => (
   <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">
@@ -87,12 +88,20 @@ const Reportes = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const token = localStorage.getItem('token'); 
+        const requestOptions = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        };
+
         const [pacientesRes, terapeutasRes, citasRes, especialidadesRes, terapiasRes] = await Promise.all([
-          fetch(`${API_BASE}/Pacientes`),
-          fetch(`${API_BASE}/Terapeutas`),
-          fetch(`${API_BASE}/Citas`),
-          fetch(`${API_BASE}/Catalogos/Especialidades`),
-          fetch(`${API_BASE}/ServicioTerapias`)
+          fetch(`${API_BASE}/Pacientes`, requestOptions),
+          fetch(`${API_BASE}/Terapeutas`, requestOptions),
+          fetch(`${API_BASE}/Citas`, requestOptions),
+          fetch(`${API_BASE}/Catalogos/Especialidades`, requestOptions),
+          fetch(`${API_BASE}/ServicioTerapias`, requestOptions)
         ]);
 
         if (pacientesRes.ok) setPacientes(await pacientesRes.json());
