@@ -29,15 +29,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
-
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/Auth/login`, {
+      const response = await fetch('https://localhost:7205/api/Auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -51,25 +49,20 @@ const Login = () => {
 
       const data = await response.json();
 
-      if (!data.success || !data.token) {
+      if (!data.success) {
         setError(data.message || 'Credenciales incorrectas');
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('username', data.user?.username || username);
+      localStorage.setItem('username', data.username || username);
 
-      const roleRoutes = {
-        Administrador: '/',
-        Recepcionista: '/pacientes',
-        Terapeuta: '/citas',
-        Paciente: '/citas'
-      };
+      // guardar token si el backend lo devuelve
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
 
-      const targetPath = roleRoutes[data.user?.rol] || '/';
-      navigate(targetPath);
+      navigate('/');
     } catch (err) {
       console.error(err);
       setError('Error de red. Intenta nuevamente.');
@@ -108,7 +101,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-600/30 disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-600/30"
           >
             {loading ? (
               <span className="flex items-center gap-2">

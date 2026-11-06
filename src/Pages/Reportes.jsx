@@ -88,10 +88,11 @@ const Reportes = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token'); 
+        const token = localStorage.getItem('token');
+
         const requestOptions = {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${token || ''}`,
             'Content-Type': 'application/json'
           }
         };
@@ -109,6 +110,10 @@ const Reportes = () => {
         if (citasRes.ok) setCitas(await citasRes.json());
         if (especialidadesRes.ok) setEspecialidades(await especialidadesRes.json());
         if (terapiasRes.ok) setTerapias(await terapiasRes.json());
+
+        if (!pacientesRes.ok || !terapeutasRes.ok || !citasRes.ok || !especialidadesRes.ok || !terapiasRes.ok) {
+          console.warn('Algunas peticiones de reportes no fueron autorizadas o fallaron.');
+        }
       } catch (error) {
         console.error('Error al cargar datos para reportes:', error);
       } finally {
@@ -350,7 +355,7 @@ const Reportes = () => {
 
           <button
             onClick={handleExportPDF}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
           >
             <Download size={18} /> Exportar PDF
           </button>
