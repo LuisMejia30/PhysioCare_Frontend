@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, ArrowLeft, Save, User, Phone, Heart, Clipboard, RefreshCw, Eye, Edit, Trash2 } from 'lucide-react';
-import CustomInput from '../Components/CustomInput';
-import CustomSelect from '../Components/CustomSelect';
+import CustomInput from '../Components/CustomInput_2';
+import CustomSelect from '../Components/CustomSelect_2';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

@@ -13,20 +13,24 @@ export const useCatalogos = () => {
 
     useEffect(() => {
         const cargarDatos = async () => {
-            // Lee la URL base desde .env (VITE_API_URL) o usa el puerto 5298 por defecto
             const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
             const baseUrl = `${API_URL}/Catalogos`;
             
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+            
             try {
-                // Peticiones en paralelo a los endpoints dinámicos
                 const [gen, doc, san, civ, esp, cat, est] = await Promise.all([
-                    fetch(`${baseUrl}/Generos`).then(r => r.json()),
-                    fetch(`${baseUrl}/TiposDocumento`).then(r => r.json()),
-                    fetch(`${baseUrl}/TiposSangre`).then(r => r.json()),
-                    fetch(`${baseUrl}/EstadosCiviles`).then(r => r.json()),
-                    fetch(`${baseUrl}/Especialidades`).then(r => r.json()),
-                    fetch(`${baseUrl}/CategoriasTerapias`).then(r => r.json()),
-                    fetch(`${baseUrl}/EstadosCitas`).then(r => r.json()),
+                    fetch(`${baseUrl}/Generos`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/TiposDocumento`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/TiposSangre`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/EstadosCiviles`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/Especialidades`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/CategoriasTerapias`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/EstadosCitas`, { headers }).then(r => r.json()),
                 ]);
 
                 setCatalogos({

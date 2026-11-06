@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, ArrowLeft, Save, UserCog, BadgeCheck, Phone, Mail, GraduationCap, Clock, Calendar as CalendarIcon, RefreshCw, User, Award, ClipboardList, Eye, Edit, Trash2 } from 'lucide-react';
-import CustomInput from '../Components/CustomInput';
-import CustomSelect from '../Components/CustomSelect';
+import CustomInput from '../Components/CustomInput_2';
+import CustomSelect from '../Components/CustomSelect_2';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
