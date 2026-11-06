@@ -1,3 +1,5 @@
+import React from 'react';
+
 const CustomInput = ({ label, type = 'text', placeholder, required = false, error, icon: Icon, ...props }) => (
   <div className="space-y-2 w-full">
     {label && (

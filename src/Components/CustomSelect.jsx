@@ -1,3 +1,5 @@
+import React from 'react';
+
 const CustomSelect = ({ label, options = [], required = false, error, icon: Icon, disabled = false, ...props }) => (
   <div className="space-y-2 w-full">
     {label && (
