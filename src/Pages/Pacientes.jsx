@@ -3,6 +3,14 @@ import { Search, UserPlus, ArrowLeft, Save, User, Phone, Heart, Clipboard, Refre
 import CustomInput from '../Components/CustomInput';
 import CustomSelect from '../Components/CustomSelect';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 const Pacientes = () => {
   const [view, setView] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,10 +144,10 @@ const Pacientes = () => {
     try {
       const baseUrl = `${API_BASE}/Catalogos`;
       const [doc, gen, sang, civ] = await Promise.all([
-        fetch(`${baseUrl}/TiposDocumento`).then(res => res.json()),
-        fetch(`${baseUrl}/Generos`).then(res => res.json()),
-        fetch(`${baseUrl}/TiposSangre`).then(res => res.json()),
-        fetch(`${baseUrl}/EstadosCiviles`).then(res => res.json())
+        fetch(`${baseUrl}/TiposDocumento`, { headers: getAuthHeaders() }).then(res => res.json()),
+        fetch(`${baseUrl}/Generos`, { headers: getAuthHeaders() }).then(res => res.json()),
+        fetch(`${baseUrl}/TiposSangre`, { headers: getAuthHeaders() }).then(res => res.json()),
+        fetch(`${baseUrl}/EstadosCiviles`, { headers: getAuthHeaders() }).then(res => res.json())
       ]);
       setCatalogos({ tiposDoc: doc, generos: gen, sangre: sang, civil: civ });
     } catch (err) {
@@ -150,7 +158,9 @@ const Pacientes = () => {
   const fetchPacientes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/Pacientes`);
+      const response = await fetch(`${API_BASE}/Pacientes`, {
+        headers: getAuthHeaders()
+      });
       if (response.ok) {
         const data = await response.json();
         setPacientes(data);
@@ -237,7 +247,10 @@ const Pacientes = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este paciente?")) {
       try {
-        const response = await fetch(`${API_BASE}/Pacientes/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/Pacientes/${id}`, { 
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
         if (response.ok) {
           alert("Paciente eliminado con éxito.");
           fetchPacientes();
@@ -292,7 +305,7 @@ const Pacientes = () => {
       const url = view === 'edit' ? `${API_BASE}/Pacientes/${selectedPaciente.id}` : `${API_BASE}/Pacientes`;
       const response = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 

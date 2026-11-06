@@ -3,6 +3,14 @@ import { Search, Plus, ArrowLeft, Save, Activity, FileText, RefreshCw, Tag, Aler
 import CustomInput from '../Components/CustomInput';
 import CustomSelect from '../Components/CustomSelect';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 const Terapias = () => {
   const [view, setView] = useState('list');
   const [loading, setLoading] = useState(true);
@@ -60,7 +68,9 @@ const Terapias = () => {
 
   const fetchTerapias = async () => {
     try {
-      const res = await fetch(ENDPOINT_TERAPIAS);
+      const res = await fetch(ENDPOINT_TERAPIAS, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         setTerapias(data);
@@ -74,7 +84,9 @@ const Terapias = () => {
 
   const fetchEspecialidades = async () => {
     try {
-      const res = await fetch(`${API_BASE}/Catalogos/Especialidades`);
+      const res = await fetch(`${API_BASE}/Catalogos/Especialidades`, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) setEspecialidades(await res.json());
     } catch (err) { console.error("Error API Especialidades:", err); }
   };
@@ -86,7 +98,9 @@ const Terapias = () => {
         return;
       }
       try {
-        const res = await fetch(`${API_BASE}/Catalogos/CategoriasPorEspecialidad/${formData.especialidadId}`);
+        const res = await fetch(`${API_BASE}/Catalogos/CategoriasPorEspecialidad/${formData.especialidadId}`, {
+          headers: getAuthHeaders()
+        });
         if (res.ok) setCategoriasFiltradas(await res.json());
       } catch (err) { console.error("Error API Categorías:", err); }
     };
@@ -145,7 +159,10 @@ const Terapias = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este servicio de terapia?")) {
       try {
-        const response = await fetch(`${ENDPOINT_TERAPIAS}/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${ENDPOINT_TERAPIAS}/${id}`, { 
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
         if (response.ok) {
           alert("Servicio eliminado con éxito.");
           fetchTerapias();
@@ -189,10 +206,7 @@ const Terapias = () => {
       const url = view === 'edit' ? `${ENDPOINT_TERAPIAS}/${selectedTerapia.id}` : ENDPOINT_TERAPIAS;
       const response = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 

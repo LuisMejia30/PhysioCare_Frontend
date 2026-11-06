@@ -4,6 +4,14 @@ import { Search, UserPlus, ArrowLeft, Save, UserCog, BadgeCheck, Phone, Mail, Gr
 import CustomInput from '../Components/CustomInput';
 import CustomSelect from '../Components/CustomSelect';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 const Terapeutas = () => {
   const [view, setView] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,13 +142,13 @@ const Terapeutas = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const resT = await fetch(`${API_BASE}/Terapeutas`);
+      const resT = await fetch(`${API_BASE}/Terapeutas`, { headers: getAuthHeaders() });
       if (resT.ok) setTerapeutas(await resT.json());
       
       const baseUrl = `${API_BASE}/Catalogos`;
       const [esp, docs] = await Promise.all([
-        fetch(`${baseUrl}/Especialidades`).then(r => r.json()),
-        fetch(`${baseUrl}/TiposDocumento`).then(r => r.json())
+        fetch(`${baseUrl}/Especialidades`, { headers: getAuthHeaders() }).then(r => r.json()),
+        fetch(`${baseUrl}/TiposDocumento`, { headers: getAuthHeaders() }).then(r => r.json())
       ]);
       setCatalogos({ especialidades: esp, documentos: docs });
     } catch (e) { console.error(e); }
@@ -236,7 +244,10 @@ const Terapeutas = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este terapeuta?")) {
       try {
-        const response = await fetch(`${API_BASE}/Terapeutas/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/Terapeutas/${id}`, { 
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
         if (response.ok) {
           alert("Terapeuta eliminado con éxito.");
           fetchData();
@@ -286,7 +297,7 @@ const Terapeutas = () => {
       const url = view === 'edit' ? `${API_BASE}/Terapeutas/${selectedTerapeuta.id}` : `${API_BASE}/Terapeutas`;
       const response = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
