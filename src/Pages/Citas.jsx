@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, 
@@ -61,9 +60,6 @@ const getAuthHeaders = () => {
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 };
-
-// Ejemplo en el fetch de tu componente Citas:
-fetch(`${API_BASE}/Citas`, { headers: getAuthHeaders() })
 
 const Citas = () => {
   const [view, setView] = useState('list');
