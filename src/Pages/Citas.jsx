@@ -53,6 +53,14 @@ const EmptyState = ({ message }) => (
   </div>
 );
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 const Citas = () => {
   const [view, setView] = useState('list');
   const [citas, setCitas] = useState([]);
@@ -90,7 +98,9 @@ const Citas = () => {
   const fetchCitas = async () => {
     setLoading(true);
     try {
-      const resp = await fetch(`${API_BASE}/Citas`);
+      const resp = await fetch(`${API_BASE}/Citas`, {
+        headers: getAuthHeaders()
+      });
       if (resp.ok) {
         const data = await resp.json();
         setCitas(data);
@@ -102,7 +112,9 @@ const Citas = () => {
 
   const fetchEstadosCita = async () => {
     try {
-      const resp = await fetch(`${API_BASE}/Catalogos/EstadosCitas`);
+      const resp = await fetch(`${API_BASE}/Catalogos/EstadosCitas`, {
+        headers: getAuthHeaders()
+      });
       if (resp.ok) {
         const data = await resp.json();
         setEstadosCita(data);
@@ -136,7 +148,9 @@ const Citas = () => {
       const controller = tipo === 'paciente' ? 'Pacientes' : 'Terapeutas';
       const endpoint = `${API_BASE}/${controller}/buscar/${doc}`;
       
-      const resp = await fetch(endpoint);
+      const resp = await fetch(endpoint, {
+        headers: getAuthHeaders()
+      });
       
       if (resp.ok) {
         const data = await resp.json();
@@ -144,7 +158,9 @@ const Citas = () => {
         setFormData(prev => ({ ...prev, [tipo === 'paciente' ? 'pacienteId' : 'terapeutaId']: data.id }));
         
         if (tipo === 'terapeuta') {
-          const sResp = await fetch(`${API_BASE}/Catalogos/ServiciosPorTerapeuta/${data.id}`);
+          const sResp = await fetch(`${API_BASE}/Catalogos/ServiciosPorTerapeuta/${data.id}`, {
+            headers: getAuthHeaders()
+          });
           if (sResp.ok) setServicios(await sResp.json());
         }
 
@@ -285,7 +301,9 @@ const Citas = () => {
     
     if (cita.terapeutaId) {
       try {
-        const sResp = await fetch(`${API_BASE}/Catalogos/ServiciosPorTerapeuta/${cita.terapeutaId}`);
+        const sResp = await fetch(`${API_BASE}/Catalogos/ServiciosPorTerapeuta/${cita.terapeutaId}`, {
+          headers: getAuthHeaders()
+        });
         if (sResp.ok) setServicios(await sResp.json());
       } catch (err) {
         console.error(err);
@@ -319,7 +337,10 @@ const Citas = () => {
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar esta cita?")) {
       try {
-        const response = await fetch(`${API_BASE}/Citas/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/Citas/${id}`, { 
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
         if (response.ok) {
           alert("Cita eliminada con éxito.");
           fetchCitas();
@@ -366,7 +387,7 @@ const Citas = () => {
       const url = view === 'edit' ? `${API_BASE}/Citas/${selectedCita.id}` : `${API_BASE}/Citas`;
       const resp = await fetch(url, {
         method: view === 'edit' ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
