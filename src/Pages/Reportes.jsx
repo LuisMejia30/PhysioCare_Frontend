@@ -32,8 +32,8 @@ import {
 } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { apiFetch } from '../services/api'; // Importamos el helper centralizado
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 const getFecha = (item) => {
@@ -88,32 +88,21 @@ const Reportes = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-
-        const requestOptions = {
-          headers: {
-            'Authorization': `Bearer ${token || ''}`,
-            'Content-Type': 'application/json'
-          }
-        };
-
-        const [pacientesRes, terapeutasRes, citasRes, especialidadesRes, terapiasRes] = await Promise.all([
-          fetch(`${API_BASE}/Pacientes`, requestOptions),
-          fetch(`${API_BASE}/Terapeutas`, requestOptions),
-          fetch(`${API_BASE}/Citas`, requestOptions),
-          fetch(`${API_BASE}/Catalogos/Especialidades`, requestOptions),
-          fetch(`${API_BASE}/ServicioTerapias`, requestOptions)
+        // Utilizamos apiFetch para todas las peticiones
+        const [pacientesData, terapeutasData, citasData, especialidadesData, terapiasData] = await Promise.all([
+          apiFetch('/Pacientes'),
+          apiFetch('/Terapeutas'),
+          apiFetch('/Citas'),
+          apiFetch('/Catalogos/Especialidades'),
+          apiFetch('/ServicioTerapias')
         ]);
 
-        if (pacientesRes.ok) setPacientes(await pacientesRes.json());
-        if (terapeutasRes.ok) setTerapeutas(await terapeutasRes.json());
-        if (citasRes.ok) setCitas(await citasRes.json());
-        if (especialidadesRes.ok) setEspecialidades(await especialidadesRes.json());
-        if (terapiasRes.ok) setTerapias(await terapiasRes.json());
+        if (pacientesData) setPacientes(pacientesData);
+        if (terapeutasData) setTerapeutas(terapeutasData);
+        if (citasData) setCitas(citasData);
+        if (especialidadesData) setEspecialidades(especialidadesData);
+        if (terapiasData) setTerapias(terapiasData);
 
-        if (!pacientesRes.ok || !terapeutasRes.ok || !citasRes.ok || !especialidadesRes.ok || !terapiasRes.ok) {
-          console.warn('Algunas peticiones de reportes no fueron autorizadas o fallaron.');
-        }
       } catch (error) {
         console.error('Error al cargar datos para reportes:', error);
       } finally {
