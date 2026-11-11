@@ -45,7 +45,10 @@ const Login = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        setError(errorData?.message || 'Error al comunicarse con el servidor o credenciales incorrectas');
+        const detailedError = errorData?.error 
+          ? `${errorData.error} ${errorData.innerError ? `(${errorData.innerError})` : ''}`
+          : (errorData?.message || 'Error al comunicarse con el servidor o credenciales incorrectas');
+        setError(detailedError);
         return;
       }
 
