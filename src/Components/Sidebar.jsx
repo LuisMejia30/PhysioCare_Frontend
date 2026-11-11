@@ -12,7 +12,7 @@ const Sidebar = ({ isOpen, toggle }) => {
   // Configuración de menús adaptados dinámicamente por rol
   const roleMenus = {
     Administrador: [
-      { name: 'Principal', icon: <Home size={20}/>, path: '/dashboard' },
+      { name: 'Principal', icon: <Home size={20}/>, path: '/' },
       { name: 'Pacientes', icon: <Users size={20}/>, path: '/pacientes' },
       { name: 'Terapeutas', icon: <UserCog size={20}/>, path: '/terapeutas' },
       { name: 'Terapias', icon: <Stethoscope size={20}/>, path: '/terapias' },
@@ -20,7 +20,7 @@ const Sidebar = ({ isOpen, toggle }) => {
       { name: 'Reportes', icon: <BarChart3 size={20}/>, path: '/reportes' },
     ],
     Recepcionista: [
-      { name: 'Principal', icon: <Home size={20}/>, path: '/dashboard' },
+      { name: 'Principal', icon: <Home size={20}/>, path: '/' },
       { name: 'Pacientes', icon: <Users size={20}/>, path: '/pacientes' },
       { name: 'Citas', icon: <ClipboardList size={20}/>, path: '/citas' },
       { name: 'Terapias', icon: <Stethoscope size={20}/>, path: '/terapias' },
@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, toggle }) => {
       { name: 'Mis Sesiones', icon: <Activity size={20}/>, path: '/reportes' },
     ],
     Paciente: [
-      { name: 'Mi Resumen', icon: <Home size={20}/>, path: '/resumen' },
+      { name: 'Mi Resumen', icon: <Home size={20}/>, path: '/' },
       { name: 'Mis Citas', icon: <Calendar size={20}/>, path: '/citas' },
       { name: 'Mi Tratamiento', icon: <Activity size={20}/>, path: '/reportes' },
     ]

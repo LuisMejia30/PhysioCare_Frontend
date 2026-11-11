@@ -47,7 +47,7 @@ const getFecha = (item) => {
 
 const StatCard = ({ icon: Icon, label, value, colorClass }) => (
   <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center">
-    <Icon className={`${colorClass} mb-2`} size={24} />
+    {Icon && <Icon className={`${colorClass} mb-2`} size={24} />}
     <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
     <h3 className="text-2xl font-black text-slate-800">{value}</h3>
   </div>
@@ -57,9 +57,11 @@ const ChartPanel = ({ title, subtitle, icon: Icon, iconClass, children, height =
   <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-xl ${iconClass}`}>
-          <Icon size={20} />
-        </div>
+        {Icon && (
+          <div className={`p-2.5 rounded-xl ${iconClass}`}>
+            <Icon size={20} />
+          </div>
+        )}
         <h3 className="font-bold text-lg text-slate-800">{title}</h3>
       </div>
       {subtitle && <p className="text-xs text-slate-500 font-medium">{subtitle}</p>}
