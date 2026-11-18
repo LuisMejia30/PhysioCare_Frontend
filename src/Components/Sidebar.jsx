@@ -53,17 +53,17 @@ const Sidebar = ({ isOpen, toggle }) => {
   };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 lg:translate-x-0 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static h-screen`}>
+    <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 lg:translate-x-0 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:h-full h-screen shrink-0 shadow-xl lg:shadow-none`}>
       {/* Encabezado con nombre del sistema y badge dinámico de Rol */}
-      <div className="p-6 border-b border-slate-800">
+      <div className="p-6 border-b border-slate-800 shrink-0">
         <div className="text-2xl font-bold text-blue-400">PhysioCare</div>
         <span className="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
           {userRole}
         </span>
       </div>
       
-      {/* Navegación según permisos */}
-      <nav className="mt-6 px-4 space-y-2 flex-1 overflow-y-auto">
+      {/* Navegación según permisos con scroll interno propio */}
+      <nav className="mt-4 px-4 space-y-2 flex-1 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -83,8 +83,8 @@ const Sidebar = ({ isOpen, toggle }) => {
         })}
       </nav>
 
-      {/* Botón de Cierre de Sesión al final de la barra lateral */}
-      <div className="p-4 border-t border-slate-800">
+      {/* Botón de Cierre de Sesión anclado al final de la barra lateral */}
+      <div className="p-4 border-t border-slate-800 shrink-0">
         <button 
           onClick={handleLogout}
           className="flex w-full items-center gap-3 p-3 rounded-xl transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300 font-semibold"

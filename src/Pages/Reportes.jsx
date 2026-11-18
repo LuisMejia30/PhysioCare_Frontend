@@ -54,8 +54,8 @@ const StatCard = ({ icon: Icon, label, value, colorClass }) => (
 );
 
 const ChartPanel = ({ title, subtitle, icon: Icon, iconClass, children, height = 300 }) => (
-  <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-    <div className="flex items-center justify-between mb-8">
+  <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col min-w-0">
+    <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
         {Icon && (
           <div className={`p-2.5 rounded-xl ${iconClass}`}>
@@ -66,7 +66,7 @@ const ChartPanel = ({ title, subtitle, icon: Icon, iconClass, children, height =
       </div>
       {subtitle && <p className="text-xs text-slate-500 font-medium">{subtitle}</p>}
     </div>
-    <div className="w-full mt-auto" style={{ height: `${height}px` }}>
+    <div className="w-full mt-auto min-w-0" style={{ height: `${height}px` }}>
       {children}
     </div>
   </div>
@@ -331,7 +331,7 @@ const Reportes = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm gap-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Análisis y Reportes</h2>
@@ -365,12 +365,12 @@ const Reportes = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 min-w-0">
         {metricCards.map(({ icon: Icon, label, value, colorClass }) => (
           <StatCard key={label} icon={Icon} label={label} value={value} colorClass={colorClass} />
         ))}
 
-        <div className="bg-slate-900 p-4 rounded-3xl shadow-md flex flex-col justify-center col-span-2 md:col-span-4 lg:col-span-1">
+        <div className="bg-slate-900 p-4 rounded-3xl shadow-md flex flex-col justify-center col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-1">
           <h4 className="text-white text-xs font-bold mb-2 flex items-center gap-1">
             <Activity size={14} className="text-blue-400" /> Estados
           </h4>
@@ -392,7 +392,7 @@ const Reportes = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
         <ChartPanel title="Flujo de Citas de Pacientes" subtitle="Pacientes únicos por día" icon={Users} iconClass="bg-orange-50 text-orange-600">
           {dataPacientes.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -448,7 +448,7 @@ const Reportes = () => {
         </ChartPanel>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
         <ChartPanel title="Demanda por Día de la Semana" subtitle="Concentración de citas" icon={BarChart2} iconClass="bg-blue-50 text-blue-600" height={250}>
           {dataDemandaDias.some((dia) => dia.Citas > 0) ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -488,7 +488,7 @@ const Reportes = () => {
         </ChartPanel>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-w-0">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
             <Activity className="text-blue-500" size={20} /> Resumen de Terapeutas Atendiendo
