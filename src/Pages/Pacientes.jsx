@@ -368,7 +368,13 @@ const Pacientes = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {pacientes.filter(p => p.primerNombre.toLowerCase().includes(searchTerm.toLowerCase())).map((p) => (
+                {pacientes.filter((p) => {
+                  const q = searchTerm.trim().toLowerCase();
+                  if (!q) return true;
+                  const nombreCompleto = [p.primerNombre, p.segundoNombre, p.primerApellido, p.segundoApellido]
+                    .filter(Boolean).join(' ').toLowerCase();
+                  return nombreCompleto.includes(q) || String(p.numeroDocumento ?? '').includes(q);
+                }).map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="px-4 py-4 font-medium text-slate-700">{p.primerNombre} {p.primerApellido}</td>
                     <td className="px-4 py-4 text-sm text-slate-500 font-mono">{p.numeroDocumento}</td>

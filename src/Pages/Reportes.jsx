@@ -91,7 +91,9 @@ const Reportes = () => {
       setLoading(true);
       try {
         // Utilizamos apiFetch para todas las peticiones
-        const [pacientesData, terapeutasData, citasData, especialidadesData, terapiasData] = await Promise.all([
+        // allSettled: si un endpoint falla (401, 403, etc.) el resto de los reportes igual se muestra
+        const nombres = ['Pacientes', 'Terapeutas', 'Citas', 'Especialidades', 'Servicios de terapia'];
+        const resultados = await Promise.allSettled([
           apiFetch('/Pacientes'),
           apiFetch('/Terapeutas'),
           apiFetch('/Citas'),
@@ -99,11 +101,21 @@ const Reportes = () => {
           apiFetch('/ServicioTerapias')
         ]);
 
-        if (pacientesData) setPacientes(pacientesData);
-        if (terapeutasData) setTerapeutas(terapeutasData);
-        if (citasData) setCitas(citasData);
-        if (especialidadesData) setEspecialidades(especialidadesData);
-        if (terapiasData) setTerapias(terapiasData);
+        resultados.forEach((r, i) => {
+          if (r.status === 'rejected') {
+            console.error(`Reportes: no se pudo cargar ${nombres[i]}:`, r.reason);
+          }
+        });
+
+        const [pacientesData, terapeutasData, citasData, especialidadesData, terapiasData] = resultados.map(
+          (r) => (r.status === 'fulfilled' && Array.isArray(r.value) ? r.value : [])
+        );
+
+        setPacientes(pacientesData);
+        setTerapeutas(terapeutasData);
+        setCitas(citasData);
+        setEspecialidades(especialidadesData);
+        setTerapias(terapiasData);
 
       } catch (error) {
         console.error('Error al cargar datos para reportes:', error);

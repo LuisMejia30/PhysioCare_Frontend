@@ -398,7 +398,7 @@ const Citas = () => {
       } else {
         try {
           const errorData = await resp.json();
-          alert("Error: " + (errorData.title || "Verifique los datos obligatorios"));
+          alert("Error: " + (errorData.message || errorData.title || "Verifique los datos obligatorios"));
         } catch {
           alert("Error al guardar la cita.");
         }
