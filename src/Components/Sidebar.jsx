@@ -28,12 +28,12 @@ const Sidebar = ({ isOpen, toggle }) => {
     Terapeuta: [
       { name: 'Mi Agenda', icon: <Calendar size={20}/>, path: '/citas' },
       { name: 'Mis Pacientes', icon: <Users size={20}/>, path: '/pacientes' },
-      { name: 'Mis Sesiones', icon: <Activity size={20}/>, path: '/reportes' },
+      { name: 'Mis Sesiones', icon: <Activity size={20}/>, path: '/mis-sesiones' },
     ],
     Paciente: [
       { name: 'Mi Resumen', icon: <Home size={20}/>, path: '/' },
       { name: 'Mis Citas', icon: <Calendar size={20}/>, path: '/citas' },
-      { name: 'Mi Tratamiento', icon: <Activity size={20}/>, path: '/reportes' },
+      { name: 'Mi Tratamiento', icon: <Activity size={20}/>, path: '/mi-tratamiento' },
     ]
   };
 

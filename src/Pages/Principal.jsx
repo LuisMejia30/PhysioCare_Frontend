@@ -103,11 +103,11 @@ const Principal = () => {
           linkText: 'Ver Pacientes'
         },
         {
-          title: 'Mis Sesiones y Reportes',
-          description: 'Analice el volumen de terapias completadas y estadísticas de atención.',
-          icon: BarChart3,
-          path: '/reportes',
-          linkText: 'Ver Estadísticas'
+          title: 'Mis Sesiones Clínicas',
+          description: 'Documente la evolución diaria de sus terapias, registre notas y revise historiales.',
+          icon: Activity,
+          path: '/mis-sesiones',
+          linkText: 'Abrir Mis Sesiones'
         }
       ]
     },
@@ -125,10 +125,10 @@ const Principal = () => {
         },
         {
           title: 'Mi Tratamiento',
-          description: 'Revisa el historial de tus sesiones terapéuticas y progreso médico.',
+          description: 'Revisa el historial de tus sesiones terapéuticas, evolución médica y recomendaciones.',
           icon: Activity,
-          path: '/reportes',
-          linkText: 'Ver Mi Progreso'
+          path: '/mi-tratamiento',
+          linkText: 'Ver Mi Tratamiento'
         },
         {
           title: 'Atención al Paciente',

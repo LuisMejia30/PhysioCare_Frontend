@@ -6,6 +6,8 @@ import Terapeutas from './Pages/Terapeutas';
 import Terapias from './Pages/Terapias';
 import Citas from './Pages/Citas';
 import Reportes from './Pages/Reportes';
+import MisSesiones from './Pages/MisSesiones';
+import MiTratamiento from './Pages/MiTratamiento';
 import Login from './Pages/Login';
 
 // Componente para proteger las rutas verificando el token JWT y los roles permitidos
@@ -63,9 +65,21 @@ function App() {
               <Citas />
             </ProtectedRoute>
           } />
+
+          <Route path="mis-sesiones" element={
+            <ProtectedRoute allowedRoles={['Terapeuta', 'Administrador']}>
+              <MisSesiones />
+            </ProtectedRoute>
+          } />
+
+          <Route path="mi-tratamiento" element={
+            <ProtectedRoute allowedRoles={['Paciente', 'Administrador']}>
+              <MiTratamiento />
+            </ProtectedRoute>
+          } />
           
           <Route path="reportes" element={
-            <ProtectedRoute allowedRoles={['Administrador', 'Terapeuta', 'Paciente']}>
+            <ProtectedRoute allowedRoles={['Administrador']}>
               <Reportes />
             </ProtectedRoute>
           } />
