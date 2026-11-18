@@ -14,14 +14,16 @@ export const apiFetch = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
 
   if (response.status === 401) {
-    // Limpieza completa de sesión idéntica a la de Sidebar.jsx
+    // Limpieza completa de sesión
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     sessionStorage.clear();
     
-    window.location.href = '/login';
+    if (window.location.pathname !== '/login') {
+      window.location.replace('/login');
+    }
     throw new Error('Sesión expirada');
   }
 
