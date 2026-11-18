@@ -5,6 +5,10 @@ const Navbar = ({ onMenuClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = user.rol || 'Paciente';
+  const canCreateCita = userRole === 'Administrador' || userRole === 'Recepcionista' || userRole === 'Paciente';
+
   const pageNames = {
     '/': 'Principal',
     '/pacientes': 'Gestión de Pacientes',
@@ -30,12 +34,23 @@ const Navbar = ({ onMenuClick }) => {
       </div>
       
       <div className="flex items-center gap-3">
-        <button 
-          onClick={handleNuevaCita}
-          className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 shadow-md transition-all active:scale-95"
-        >
-          <PlusCircle size={18} /> Nueva Cita
-        </button>
+        {canCreateCita && (
+          <button 
+            onClick={handleNuevaCita}
+            className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 shadow-md transition-all active:scale-95"
+          >
+            <PlusCircle size={18} /> Nueva Cita
+          </button>
+        )}
+        <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-black text-sm">
+            {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <div className="hidden sm:block text-left">
+            <p className="text-xs font-bold text-slate-800 leading-none">{user.username || 'Usuario'}</p>
+            <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">{userRole}</span>
+          </div>
+        </div>
       </div>
     </header>
   );

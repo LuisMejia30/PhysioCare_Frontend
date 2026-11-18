@@ -25,14 +25,16 @@ const PageHeader = ({ title, subtitle, actionLabel, onAction, isPrimary = true }
       </p>
     </div>
 
-    <button
-      onClick={onAction}
-      className={`px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${
-        isPrimary ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-slate-600 border-2 border-slate-100'
-      }`}
-    >
-      {actionLabel}
-    </button>
+    {actionLabel && (
+      <button
+        onClick={onAction}
+        className={`px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${
+          isPrimary ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-slate-600 border-2 border-slate-100'
+        }`}
+      >
+        {actionLabel}
+      </button>
+    )}
   </div>
 );
 
@@ -70,6 +72,15 @@ const Citas = () => {
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
 
+  // Información del usuario y rol autenticado
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = user.rol || 'Paciente';
+  const isPaciente = userRole === 'Paciente';
+  const isTerapeuta = userRole === 'Terapeuta';
+  const canCreateCita = userRole === 'Administrador' || userRole === 'Recepcionista' || userRole === 'Paciente';
+  const canEditCita = userRole === 'Administrador' || userRole === 'Recepcionista' || userRole === 'Terapeuta';
+  const canDeleteCita = userRole === 'Administrador' || userRole === 'Recepcionista';
+
   const [searchDocs, setSearchDocs] = useState({ pacienteDoc: '', terapeutaDoc: '' });
   const [searching, setSearching] = useState({ paciente: false, terapeuta: false });
   const [foundData, setFoundData] = useState({ paciente: null, terapeuta: null });
@@ -94,6 +105,28 @@ const Citas = () => {
     fetchCitas();
     fetchEstadosCita();
   }, []);
+
+  // Si el usuario autenticado tiene el rol de Paciente, precargar automáticamente su perfil
+  useEffect(() => {
+    if (isPaciente && user.pacienteId) {
+      const cargarMiPerfilPaciente = async () => {
+        try {
+          const resp = await fetch(`${API_BASE}/Pacientes/${user.pacienteId}`, {
+            headers: getAuthHeaders()
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            setFoundData(prev => ({ ...prev, paciente: data }));
+            setFormData(prev => ({ ...prev, pacienteId: data.id }));
+            setSearchDocs(prev => ({ ...prev, pacienteDoc: String(data.numeroDocumento || '') }));
+          }
+        } catch (e) {
+          console.error("Error al precargar perfil de paciente:", e);
+        }
+      };
+      cargarMiPerfilPaciente();
+    }
+  }, [isPaciente, user.pacienteId]);
 
   const fetchCitas = async () => {
     setLoading(true);
@@ -413,7 +446,7 @@ const Citas = () => {
 
   const resetForm = () => {
     setFormData({ 
-      pacienteId: '', 
+      pacienteId: isPaciente && foundData.paciente ? foundData.paciente.id : '', 
       terapeutaId: '', 
       servicioTerapiaId: '', 
       fecha: '', 
@@ -421,8 +454,11 @@ const Citas = () => {
       duracionEstimada: 30, 
       EstadoCitaId: estadosCita[0]?.id || ''
     });
-    setSearchDocs({ pacienteDoc: '', terapeutaDoc: '' });
-    setFoundData({ paciente: null, terapeuta: null });
+    setSearchDocs({ 
+      pacienteDoc: isPaciente && foundData.paciente ? String(foundData.paciente.numeroDocumento || '') : '', 
+      terapeutaDoc: '' 
+    });
+    setFoundData(prev => ({ paciente: isPaciente ? prev.paciente : null, terapeuta: null }));
     setSearchErrors({ paciente: null, terapeuta: null });
     setFormErrors({});
     setServicios([]);
@@ -476,8 +512,8 @@ const Citas = () => {
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans">
       <div className="w-full mx-auto">
         <PageHeader
-          title="Agenda Médica"
-          subtitle="PhysioCare Sistema"
+          title={isTerapeuta ? "Mi Agenda" : (isPaciente ? "Mis Citas" : "Agenda Médica")}
+          subtitle={isTerapeuta ? "Consultas y terapias asignadas" : (isPaciente ? "Tus citas y sesiones" : "PhysioCare Sistema")}
           onAction={() => {
             if (view === 'list') {
               setView('form');
@@ -489,7 +525,7 @@ const Citas = () => {
           }}
           actionLabel={
             view === 'list' ? (
-              <><ChevronRight size={20} /> NUEVA CITA</>
+              canCreateCita ? <><ChevronRight size={20} /> NUEVA CITA</> : null
             ) : (
               <><ArrowLeft size={20} /> VOLVER</>
             )
@@ -551,9 +587,13 @@ const Citas = () => {
                   </div>
 
                   <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                    <button onClick={() => handleView(cita)} className="p-2 text-blue-600 hover:bg-blue-50 bg-slate-50 rounded-lg transition-colors" title="Ver"><Eye size={18}/></button>
-                    <button onClick={() => handleEdit(cita)} className="p-2 text-emerald-600 hover:bg-emerald-50 bg-slate-50 rounded-lg transition-colors" title="Editar"><Edit size={18}/></button>
-                    <button onClick={() => handleDelete(cita.id)} className="p-2 text-red-600 hover:bg-red-50 bg-slate-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={18}/></button>
+                    <button onClick={() => handleView(cita)} className="p-2 text-blue-600 hover:bg-blue-50 bg-slate-50 rounded-lg transition-colors" title="Ver Detalle"><Eye size={18}/></button>
+                    {canEditCita && (
+                      <button onClick={() => handleEdit(cita)} className="p-2 text-emerald-600 hover:bg-emerald-50 bg-slate-50 rounded-lg transition-colors" title="Editar Estado"><Edit size={18}/></button>
+                    )}
+                    {canDeleteCita && (
+                      <button onClick={() => handleDelete(cita.id)} className="p-2 text-red-600 hover:bg-red-50 bg-slate-50 rounded-lg transition-colors" title="Eliminar Cita"><Trash2 size={18}/></button>
+                    )}
                   </div>
                 </div>
               ))
@@ -573,8 +613,12 @@ const Citas = () => {
                   </span>
                 </div>
                 <div className="flex gap-2 mt-4 md:mt-0">
-                  <button onClick={() => handleEdit(selectedCita)} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition-all"><Edit size={18}/> Editar</button>
-                  <button onClick={() => handleDelete(selectedCita.id)} className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all"><Trash2 size={18}/> Eliminar</button>
+                  {canEditCita && (
+                    <button onClick={() => handleEdit(selectedCita)} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition-all"><Edit size={18}/> Editar</button>
+                  )}
+                  {canDeleteCita && (
+                    <button onClick={() => handleDelete(selectedCita.id)} className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all"><Trash2 size={18}/> Eliminar</button>
+                  )}
                 </div>
              </div>
              
@@ -607,35 +651,53 @@ const Citas = () => {
         ) : (
           <div className="grid lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="lg:col-span-5 space-y-6">
-              <div className={`bg-white p-7 rounded-[2.5rem] shadow-sm border ${formErrors.pacienteId ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-100'} transition-all`}>
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">1. Localizar Paciente <span className="text-red-500">*</span></label>
-                <div className="flex gap-3 mb-4">
-                  <div className="relative flex-1">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      type="text" 
-                      placeholder="Documento paciente..."
-                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-                      value={searchDocs.pacienteDoc}
-                      onChange={(e) => handleSearchDocChange('paciente', e.target.value)}
-                    />
-                  </div>
-                  <button onClick={() => buscarPorDocumento('paciente')} className="w-14 h-14 flex items-center justify-center bg-slate-900 text-white rounded-2xl hover:bg-blue-600 transition-all shadow-lg">
-                    {searching.paciente ? <RefreshCw className="animate-spin" size={20} /> : <Search size={22} />}
-                  </button>
-                </div>
-                {foundData.paciente && (
+              {isPaciente ? (
+                <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-slate-100">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">1. Datos del Paciente (Tú)</label>
                   <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
-                    <UserCheck className="text-emerald-500" size={24} />
+                    <UserCheck className="text-emerald-500" size={28} />
                     <div className="overflow-hidden">
-                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Confirmado</p>
-                      <p className="font-black text-emerald-900 text-lg truncate">{getFullName(foundData.paciente)}</p>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Paciente Identificado</p>
+                      <p className="font-black text-emerald-900 text-lg truncate">
+                        {foundData.paciente ? getFullName(foundData.paciente) : (user.username || 'Paciente')}
+                      </p>
+                      {foundData.paciente?.numeroDocumento && (
+                        <p className="text-xs font-bold text-emerald-700">Documento: {foundData.paciente.numeroDocumento}</p>
+                      )}
                     </div>
                   </div>
-                )}
-                {searchErrors.paciente && <p className="text-red-500 text-[11px] font-bold mt-2 flex items-center gap-1"><AlertCircle size={14}/> {searchErrors.paciente}</p>}
-                {formErrors.pacienteId && <p className="text-red-500 text-[11px] font-bold mt-2 flex items-center gap-1"><AlertCircle size={14}/> {formErrors.pacienteId}</p>}
-              </div>
+                </div>
+              ) : (
+                <div className={`bg-white p-7 rounded-[2.5rem] shadow-sm border ${formErrors.pacienteId ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-100'} transition-all`}>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">1. Localizar Paciente <span className="text-red-500">*</span></label>
+                  <div className="flex gap-3 mb-4">
+                    <div className="relative flex-1">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input 
+                        type="text" 
+                        placeholder="Documento paciente..."
+                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                        value={searchDocs.pacienteDoc}
+                        onChange={(e) => handleSearchDocChange('paciente', e.target.value)}
+                      />
+                    </div>
+                    <button onClick={() => buscarPorDocumento('paciente')} className="w-14 h-14 flex items-center justify-center bg-slate-900 text-white rounded-2xl hover:bg-blue-600 transition-all shadow-lg">
+                      {searching.paciente ? <RefreshCw className="animate-spin" size={20} /> : <Search size={22} />}
+                    </button>
+                  </div>
+                  {foundData.paciente && (
+                    <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-4">
+                      <UserCheck className="text-emerald-500" size={24} />
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Confirmado</p>
+                        <p className="font-black text-emerald-900 text-lg truncate">{getFullName(foundData.paciente)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {searchErrors.paciente && <p className="text-red-500 text-[11px] font-bold mt-2 flex items-center gap-1"><AlertCircle size={14}/> {searchErrors.paciente}</p>}
+                  {formErrors.pacienteId && <p className="text-red-500 text-[11px] font-bold mt-2 flex items-center gap-1"><AlertCircle size={14}/> {formErrors.pacienteId}</p>}
+                </div>
+              )}
 
               <div className={`bg-white p-7 rounded-[2.5rem] shadow-sm border ${formErrors.terapeutaId ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-100'} transition-all`}>
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 block">2. Asignar Terapeuta <span className="text-red-500">*</span></label>

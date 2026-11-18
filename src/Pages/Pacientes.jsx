@@ -21,6 +21,12 @@ const Pacientes = () => {
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5298/api';
 
+  // Validación de permisos por rol
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = user.rol || 'Paciente';
+  const canManage = userRole === 'Administrador' || userRole === 'Recepcionista';
+  const canEdit = userRole === 'Administrador' || userRole === 'Recepcionista' || userRole === 'Terapeuta';
+
   const [catalogos, setCatalogos] = useState({
     tiposDoc: [],
     generos: [],
@@ -336,12 +342,22 @@ const Pacientes = () => {
            <button onClick={fetchPacientes} className="p-3 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200">
             <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
           </button>
-          <button 
-            onClick={() => { setFormData(initialState); setSelectedPaciente(null); setFormErrors({}); setView(view === 'list' ? 'register' : 'list'); }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl hover:bg-blue-700 font-bold shadow-lg transition-all"
-          >
-            {view === 'list' ? <><UserPlus size={20} /> Nuevo Paciente</> : <><ArrowLeft size={20} /> Volver</>}
-          </button>
+          {canManage && (
+            <button 
+              onClick={() => { setFormData(initialState); setSelectedPaciente(null); setFormErrors({}); setView(view === 'list' ? 'register' : 'list'); }}
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl hover:bg-blue-700 font-bold shadow-lg transition-all"
+            >
+              {view === 'list' ? <><UserPlus size={20} /> Nuevo Paciente</> : <><ArrowLeft size={20} /> Volver</>}
+            </button>
+          )}
+          {!canManage && view !== 'list' && (
+            <button 
+              onClick={() => setView('list')}
+              className="flex items-center gap-2 bg-slate-100 text-slate-700 px-6 py-3 rounded-2xl hover:bg-slate-200 font-bold transition-all"
+            >
+              <ArrowLeft size={20} /> Volver
+            </button>
+          )}
         </div>
       </div>
 
@@ -380,8 +396,12 @@ const Pacientes = () => {
                     <td className="px-4 py-4 text-sm text-slate-500 font-mono">{p.numeroDocumento}</td>
                     <td className="px-4 py-4 text-right flex justify-end gap-2">
                       <button onClick={() => handleView(p)} className="p-2 text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 rounded-lg transition-colors" title="Ver Detalle"><Eye size={18} /></button>
-                      <button onClick={() => handleEdit(p)} className="p-2 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar"><Edit size={18} /></button>
-                      <button onClick={() => handleDelete(p.id)} className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={18} /></button>
+                      {canEdit && (
+                        <button onClick={() => handleEdit(p)} className="p-2 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar"><Edit size={18} /></button>
+                      )}
+                      {canManage && (
+                        <button onClick={() => handleDelete(p.id)} className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={18} /></button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -394,8 +414,12 @@ const Pacientes = () => {
           <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">Detalles del Paciente</h3>
              <div className="flex gap-3">
-               <button onClick={() => handleEdit(selectedPaciente)} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition-all"><Edit size={18}/> Editar</button>
-               <button onClick={() => handleDelete(selectedPaciente.id)} className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all"><Trash2 size={18}/> Eliminar</button>
+               {canEdit && (
+                 <button onClick={() => handleEdit(selectedPaciente)} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition-all"><Edit size={18}/> Editar</button>
+               )}
+               {canManage && (
+                 <button onClick={() => handleDelete(selectedPaciente.id)} className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all"><Trash2 size={18}/> Eliminar</button>
+               )}
              </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
